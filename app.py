@@ -1,130 +1,132 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from io import BytesIO
 
-# --- 1. CONFIGURAÇÃO E IDENTIDADE ---
-st.set_page_config(page_title="S.P.A. Sidney Almeida", layout="wide", page_icon="🛰️")
+# --- 1. CONFIGURAÇÃO DE INTERFACE PADRÃO OURO ---
+st.set_page_config(page_title="S.P.A. - SENTINELA INTEGRAL", layout="wide", page_icon="⚖️")
 
-# --- 2. QUANTUM MEMORY: BANCO DE DADOS REALÍSTICO (ACUMULATIVO) ---
+# --- 2. QUANTUM MEMORY: CENÁRIOS TÉCNICOS INTEGRADOS (DADOS ACUMULADOS) ---
 if 'db_ficticio' not in st.session_state:
     st.session_state.db_ficticio = {
-        # OPERADORES (Pessoas para Visão Operação)
-        "ANA": {"ALO": 450, "CPC": 180, "VALOR": 12500.50, "STATUS": "LIBERADO", "TABULACAO": "Promessa de Pagamento", "FORENSE": "Alta performance. Scripts de urgência aplicados.", "LEGAL": "Regimento Interno"},
-        "MARCOS": {"ALO": 890, "CPC": 12, "VALOR": 0.00, "STATUS": "BLOQUEADO", "TABULACAO": "Queda de Sistema (Falsa)", "FORENSE": "42 quedas de hardware detectadas. Sabotagem física.", "LEGAL": "Art. 482 CLT"},
-        "RICARDO": {"ALO": 320, "CPC": 290, "VALOR": 150.00, "STATUS": "BLOQUEADO", "TABULACAO": "Chamada Muda", "FORENSE": "Operador atende e silencia microfone.", "LEGAL": "Insubordinação"},
-        "JULIA": {"ALO": 510, "CPC": 150, "VALOR": 4200.00, "STATUS": "LIBERADO", "TABULACAO": "Negociação em Curso", "FORENSE": "Volume constante, sem alertas.", "LEGAL": "Regimento Interno"},
-        # CARTEIRAS (Mailing para Visão Discador)
-        "VIVO MÓVEL": {"LEADS": 50000, "PENETRACAO": 45, "STATUS_MEIO": "PRECISA RECARGA", "TICKET": 145.00},
-        "RETAIL": {"LEADS": 120000, "PENETRACAO": 15, "STATUS_MEIO": "MAILING ESGOTADO", "TICKET": 320.00},
-        "VIVO (TRUNK)": {"ALO": 5000, "CPC": 800, "VALOR": 3500.00, "STATUS": "BLOQUEADO", "MOTIVO": "Queda Trunk IP", "FORENSE": "Falha massiva no Gateway SIP.", "LEGAL": "SLA Técnica"}
+        # OPERAÇÃO: ALÔ -> CONTATO -> CPC | VALOR | PROJEÇÃO | LEI | PERDA
+        "ANA (PERFORMANCE)": {
+            "ALO": 1200, "CON": 950, "CPC": 450, "VALOR": 45800.00, "STATUS": "LIBERADO", 
+            "TAB": "Promessa Firmada", "FOR": "Script nível 5. Alta conversão de mailing classe A.", 
+            "LEGAL": "Art. 444 CLT (Conformidade)", "PERDA": 0.0, "PROJ": 91600.0},
+        
+        "MARCOS (CABO DESCONECTADO)": {
+            "ALO": 2500, "CON": 50, "CPC": 5, "VALOR": 0.00, "STATUS": "BLOQUEADO", 
+            "TAB": "Sabotagem de Hardware", "FOR": "Desconexão física para ociosidade forçada.", 
+            "LEGAL": "Art. 482, 'e' CLT (Desídia/Sabotagem)", "PERDA": 1250.0, "PROJ": 0.0},
+            
+        "RICARDO (MUDO PROPOSITAL)": {
+            "ALO": 800, "CON": 780, "CPC": 700, "VALOR": 150.00, "STATUS": "BLOQUEADO", 
+            "TAB": "Retenção de Linha", "FOR": "Uso de mute para evitar atendimento real.", 
+            "LEGAL": "Art. 482, 'h' CLT (Insubordinação)", "PERDA": 850.0, "PROJ": 300.0},
+            
+        "JULIA (VÁCUO/OMISSÃO)": {
+            "ALO": 100, "CON": 20, "CPC": 10, "VALOR": 800.00, "STATUS": "BLOQUEADO", 
+            "TAB": "Pulo de Rodada", "FOR": "IA-SENTINELA detectou vácuo operacional.", 
+            "LEGAL": "Art. 482, 'e' CLT (Desídia)", "PERDA": 450.0, "PROJ": 1600.0},
+
+        # DISCADOR: MEIO | SPC | PENETRAÇÃO | CAPACITY | TICKET
+        "MAILING_VIVO_MÓVEL_JAN": {
+            "ALO": 150000, "CON": 85000, "CPC": 42000, "VALOR": 0, "STATUS": "PENDENTE",
+            "TAB": "AUDITORIA MAILING", "FOR": "Mailing Quente - Alta Penetração.",
+            "LEGAL": "LGPD/Compliance", "PERDA": 0.0, "AUTO": 12.5, "SPC": "HIGIENIZADO", "PEN": 65, "TICKET": 185.0, "PROJ": 0},
+            
+        "ESTEIRA_RECOVERY_SPC": {
+            "ALO": 300000, "CON": 45000, "CPC": 9000, "VALOR": 0, "STATUS": "BLOQUEADO",
+            "TAB": "ENRIQUECIMENTO", "FOR": "Base morta - Necessita reprocessamento urgente.",
+            "LEGAL": "Higienização", "PERDA": 2500.0, "AUTO": 2.1, "SPC": "PENDENTE", "PEN": 15, "TICKET": 420.0, "PROJ": 0},
+
+        "VIVO (TRUNK IP)": {
+            "ALO": 500000, "CON": 480000, "CPC": 120000, "STATUS": "BLOQUEADO", 
+            "TAB": "Queda de Link", "FOR": "Latência instável no Gateway.", "LEGAL": "SLA Técnica", "PERDA": 5000.0, "PROJ": 0}
     }
 
 if 'historico' not in st.session_state:
     st.session_state.historico = pd.DataFrame(columns=[
-        "DATA", "ALVO", "VISAO", "TABULACAO", "VALOR", "ALO", "CPC", 
-        "STATUS", "FORENSE", "LEGAL", "PENETRACAO", "TICKET_MEDIO", 
-        "AUTONOMIA_DIAS", "NOTIFICACAO", "STATUS_MEIO"
+        "DATA", "ALVO", "VISAO", "TABULACAO", "VALOR", "ALO", "CONTATO", "CPC", 
+        "STATUS", "LEGAL", "PERDA", "PROJECAO_X", "QUALIDADE", "ESTEIRA_SPC", "AUTO"
     ])
 
-# --- 3. BARRA LATERAL: COMANDO DINÂMICO ---
+# --- 3. BARRA LATERAL: CENTRAL DE COMANDO ---
 with st.sidebar:
-    st.header("🕵️ COMANDO CENTRAL")
-    visao_ativa = st.radio("DESTINO DO REGISTRO", ["VISÃO OPERAÇÃO (OPERADORES)", "VISÃO DISCADOR (MAILING/STRAT)", "VISÃO TELEFONIA", "VISÃO JURÍDICA"])
+    st.title("🛰️ S.P.A. MASTER")
+    visao_ativa = st.radio("SISTEMA:", ["📈 OPERAÇÃO & JURÍDICO", "🧠 DISCADOR (ESTEIRA)", "📡 TELEFONIA"])
     
     st.divider()
-    
-    # CORREÇÃO DO FILTRO SOLICITADA: Separação por categoria
-    if visao_ativa == "VISÃO OPERAÇÃO (OPERADORES)":
-        lista_alvos = ["ANA", "MARCOS", "RICARDO", "JULIA"]
-        label_selecao = "OPERADOR EM LOGON:"
-    elif visao_ativa == "VISÃO DISCADOR (MAILING/STRAT)":
-        lista_alvos = ["VIVO MÓVEL", "RETAIL", "CARTEIRA JURÍDICO"]
-        label_selecao = "CARTEIRA DE MAILING:"
+    if visao_ativa == "📈 OPERAÇÃO & JURÍDICO":
+        alvo = st.selectbox("ALVO AUDITADO:", ["ANA (PERFORMANCE)", "MARCOS (CABO DESCONECTADO)", "RICARDO (MUDO PROPOSITAL)", "JULIA (VÁCUO/OMISSÃO)"])
+    elif visao_ativa == "🧠 DISCADOR (ESTEIRA)":
+        alvo = st.selectbox("IDENTIFICAÇÃO DO MEIO:", ["MAILING_VIVO_MÓVEL_JAN", "ESTEIRA_RECOVERY_SPC"])
     else:
-        lista_alvos = ["VIVO (TRUNK)", "CLARO (TRUNK)", "SIPvox"]
-        label_selecao = "CANAL DE TELEFONIA:"
+        alvo = st.selectbox("CANAL DE REDE:", ["VIVO (TRUNK IP)"])
+
+    d = st.session_state.db_ficticio[alvo]
+
+    if st.button("🚀 EXECUTAR INTEGRAÇÃO TOTAL"):
+        # REGRA DO X: PROJEÇÃO - 50%
+        x_calc = d.get("PROJ", 0.0) * 0.50
         
-    alvo_ref = st.selectbox(label_selecao, lista_alvos)
-    default = st.session_state.db_ficticio.get(alvo_ref, {"ALO":0, "CPC":0, "VALOR":0.0, "STATUS":"Pendente", "TABULACAO":"N/A", "FORENSE":"", "LEGAL":"N/A", "LEADS":0, "PENETRACAO":0})
+        novo = pd.DataFrame([{
+            "DATA": datetime.now().strftime("%H:%M:%S"), "ALVO": alvo, "VISAO": visao_ativa,
+            "TABULACAO": d.get("TAB"), "VALOR": d.get("VALOR", 0.0), 
+            "ALO": d.get("ALO"), "CONTATO": d.get("CON"), "CPC": d.get("CPC"),
+            "STATUS": d.get("STATUS"), "LEGAL": d.get("LEGAL"), 
+            "PERDA": d.get("PERDA"), "PROJECAO_X": x_calc,
+            "QUALIDADE": d.get("MEIO", "N/A"), "ESTEIRA_SPC": d.get("SPC", "N/A"),
+            "AUTO": d.get("AUTO", 0)
+        }])
+        st.session_state.historico = pd.concat([st.session_state.historico, novo], ignore_index=True)
 
-    with st.form("master_sync"):
-        st.subheader("⚙️ Input Real da Operação")
-        
-        if visao_ativa == "VISÃO OPERAÇÃO (OPERADORES)":
-            f_tab = st.selectbox("TABULAÇÃO/STATUS", ["Promessa de Pagamento", "Vácuo (Omissão)", "Cabo Desconectado", "Mudo Proposital", "Pausa Indevida"])
-            f_val = st.number_input("VALOR RECUPERADO (R$)", value=default["VALOR"])
-            f_for = st.text_area("ANÁLISE DE CONDUTA (FORENSE)", value=default["FORENSE"])
-            f_pen, f_auto, f_meio, f_ticket = 0, 0, "N/A", 0
-            
-        elif visao_ativa == "VISÃO DISCADOR (MAILING/STRAT)":
-            f_tab = "AUDITORIA DE ESTRATÉGIA"
-            f_ticket = st.number_input("TICKET MÉDIO DA BASE", value=default.get("TICKET", 180.00))
-            f_pen = st.slider("TAXA DE PENETRAÇÃO (%)", 0, 100, default.get("PENETRACAO", 40))
-            f_leads = st.number_input("TOTAL DE LEADS ATIVOS", value=default.get("LEADS", 50000))
-            f_ops = st.number_input("OPERADORES EM LOGON", value=20)
-            # Cálculo de Capacity
-            f_auto = round(f_leads / (f_ops * 400), 2) if f_ops > 0 else 0
-            f_meio = st.selectbox("STATUS DA RECICLAGEM", ["MAILING QUENTE", "NECESSITA HIGIENIZAÇÃO", "BASE ESGOTADA"])
-            f_for = st.text_area("MELHORIA DO MEIO", value="Análise de malha.")
-            f_val = 0.0
-        
-        else:
-            f_tab, f_val, f_for, f_pen, f_auto, f_meio, f_ticket = "N/A", default["VALOR"], default["FORENSE"], 0, 0, "N/A", 0
-
-        f_alo = st.number_input("VOL. ALÔ", value=default.get("ALO", 0))
-        f_cpc = st.number_input("VOL. CPC", value=default.get("CPC", 0))
-
-        if st.form_submit_button("🚀 SINCRONIZAR E NOTIFICAR"):
-            alerta = "Sinal Estável"
-            if any(x in f_tab for x in ["Cabo", "Mudo", "Vácuo"]): alerta = "🚩 ALERTA DE SABOTAGEM"
-            elif f_auto < 1 and visao_ativa.startswith("VISÃO DISCADOR"): alerta = "⚠️ MAILING CRÍTICO"
-            
-            novo = pd.DataFrame([{
-                "DATA": datetime.now().strftime("%H:%M %d/%m"), "ALVO": alvo_ref, "VISAO": visao_ativa,
-                "TABULACAO": f_tab, "VALOR": f_val, "ALO": f_alo, "CPC": f_cpc,
-                "STATUS": "BLOQUEADO" if "ALERTA" in alerta else "LIBERADO",
-                "FORENSE": f_for, "LEGAL": default["LEGAL"], "PENETRACAO": f"{f_pen}%",
-                "TICKET_MEDIO": f_ticket, "AUTONOMIA_DIAS": f_auto, "NOTIFICACAO": alerta, "STATUS_MEIO": f_meio
-            }])
-            st.session_state.historico = pd.concat([st.session_state.historico, novo], ignore_index=True)
-
-# --- 4. PAINEL S.P.A. (ABAS ACUMULATIVAS) ---
+# --- 4. DASHBOARD INTEGRADO (VISUAL MILIONÁRIO) ---
 st.title("🛰️ S.P.A. - SENTINELA DE PERFORMANCE ATIVA")
 
-# Painel de Notificações em Tempo Real
-avisos = st.session_state.historico[st.session_state.historico["NOTIFICACAO"] != "Sinal Estável"].tail(3)
-for _, n in avisos.iterrows():
-    st.error(f"**ALERTA ATIVO ({n['DATA']}):** {n['NOTIFICACAO']} em {n['ALVO']} | {n['FORENSE']}")
+# --- TABELA DA FAVELINHA (SEMPRE VISÍVEL - AÇÃO IMEDIATA) ---
+st.subheader("📊 Tabela da Favelinha (Visão de Auditoria)")
+if not st.session_state.historico.empty:
+    st.table(st.session_state.historico.tail(5)[["ALVO", "ALO", "CPC", "VALOR", "PROJECAO_X", "STATUS", "LEGAL"]])
+else:
+    st.info("Aguardando sincronização de dados...")
 
-t_ope, t_disc, t_tel, t_jur = st.tabs(["📈 OPERAÇÃO (FUSÃO)", "🧠 DISCADOR (STRAT/CAPACITY)", "📡 TELEFONIA", "⚖️ JURÍDICO"])
+t1, t2, t3 = st.tabs(["👥 OPERAÇÃO & JURÍDICO", "🧠 DISCADOR & CAPACITY", "📡 TELEFONIA"])
 
-with t_ope:
-    st.subheader("Performance Integrada (Dinheiro + Conduta)")
-    df_o = st.session_state.historico[st.session_state.historico["VISAO"] == "VISÃO OPERAÇÃO (OPERADORES)"]
-    st.table(df_o[["DATA", "ALVO", "TABULACAO", "VALOR", "STATUS", "FORENSE"]])
+with t1:
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("ALVO", alvo)
+    c2.metric("RECUPERADO", f"R$ {d.get('VALOR'):,.2f}")
+    c3.metric("PROJEÇÃO X (-50%)", f"R$ {d.get('PROJ', 0.0) * 0.5:,.2f}")
+    c4.metric("PREJUÍZO OCIOSIDADE", f"R$ {d.get('PERDA'):,.2f}", delta="- PREJUÍZO", delta_color="inverse")
 
-with t_disc:
-    st.subheader("Capacidade de Mailing e Inteligência de Malha")
-    df_d = st.session_state.historico[st.session_state.historico["VISAO"] == "VISÃO DISCADOR (MAILING/STRAT)"]
-    if not df_d.empty:
-        l = df_d.iloc[-1]
+    st.divider()
+    col_a, col_b = st.columns([2, 1])
+    with col_a:
+        st.subheader("🔎 Dossiê Forense")
+        st.info(f"**Parecer Técnico:** {d.get('FOR')}")
+        st.progress(d["CON"]/d["ALO"] if d["ALO"] > 0 else 0, text=f"Funil Alô -> Contato: {round((d['CON']/d['ALO']*100) if d['ALO']>0 else 0)}%")
+        st.progress(d["CPC"]/d["CON"] if d["CON"] > 0 else 0, text=f"Funil Contato -> CPC: {round((d['CPC']/d['CON']*100) if d['CON']>0 else 0)}%")
+    with col_b:
+        st.subheader("⚖️ Blindagem Legal")
+        st.error(f"**Base Legal:** {d.get('LEGAL')}")
+        st.write(f"**Status de Operação:** {d.get('STATUS')}")
+
+with t2:
+    st.subheader("Inteligência de Mailing e Esteira SPC")
+    if visao_ativa == "🧠 DISCADOR (ESTEIRA)":
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("AUTONOMIA (DIAS)", f"{l['AUTONOMIA_DIAS']}")
-        c2.metric("PENETRAÇÃO", l['PENETRACAO'])
-        c3.metric("TICKET MÉDIO", f"R$ {l['TICKET_MEDIO']}")
-        c4.metric("STATUS MEIO", l['STATUS_MEIO'])
-        st.dataframe(df_d[["DATA", "ALVO", "PENETRACAO", "STATUS_MEIO", "AUTONOMIA_DIAS", "FORENSE"]], use_container_width=True)
+        c1.metric("QUALIDADE DO MEIO", d.get("MEIO"))
+        c2.metric("ESTEIRA SPC", d.get("SPC"))
+        c3.metric("AUTONOMIA", f"{d.get('AUTO')} Dias")
+        c4.metric("PENETRAÇÃO", f"{d.get('PEN')}%")
+    st.dataframe(st.session_state.historico[st.session_state.historico["VISAO"] == "🧠 DISCADOR (ESTEIRA)"], use_container_width=True)
 
-with t_tel:
-    st.subheader("Status de Rede e Trunking IP")
-    st.dataframe(st.session_state.historico[st.session_state.historico["VISAO"] == "VISÃO TELEFONIA"], use_container_width=True)
-
-with t_jur:
-    st.subheader("Blindagem Forense e Legal")
-    st.table(st.session_state.historico[["DATA", "ALVO", "STATUS", "LEGAL", "TABULACAO"]])
+with t3:
+    st.subheader("Status de Rede (Trunk IP)")
+    st.dataframe(st.session_state.historico[st.session_state.historico["VISAO"] == "📡 TELEFONIA"], use_container_width=True)
 
 # --- 5. EXPORTAÇÃO ---
 st.divider()
-st.download_button("📊 EXPORTAR RELATÓRIO SPA COMPLETO", st.session_state.historico.to_csv(index=False).encode('utf-8-sig'), "SPA_Completo_Acumulado.csv")
-    
+st.download_button("📊 GERAR RELATÓRIO PADRÃO OURO (CSV)", st.session_state.historico.to_csv(index=False).encode('utf-8-sig'), "SPA_INTEGRAL_FINAL.csv")
+            
