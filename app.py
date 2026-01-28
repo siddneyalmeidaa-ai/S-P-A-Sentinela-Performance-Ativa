@@ -1,36 +1,62 @@
 import streamlit as st
 import pandas as pd
-import datetime
+from datetime import datetime
 
-# --- CONFIGURAÇÃO DA INTERFACE S.P.A. ---
-st.set_page_config(page_title="S.P.A. Dashboard", layout="wide", page_icon="🛰️")
+# --- CONFIGURAÇÃO DA INTERFACE ---
+st.set_page_config(page_title="S.P.A. - Sidney Almeida", layout="wide", page_icon="🛰️")
 
-# --- CABEÇALHO ---
+# --- SIMULAÇÃO DE BANCO DE DATOS (Quantum Memory) ---
+if 'db_auditoria' not in st.session_state:
+    st.session_state.db_auditoria = pd.DataFrame(columns=["DATA", "OPERADOR", "ERRO", "ESTORNO", "STATUS"])
+
+# --- BARRA LATERAL (CAMPOS PARA MEXER) ---
+with st.sidebar:
+    st.header("🎮 PAINEL DE COMANDO")
+    st.subheader("LANÇAR NOVA RODADA")
+    
+    op_select = st.selectbox("SELECIONE O OPERADOR", ["MARCOS", "ANA", "RICARDO", "JULIA", "TODOS"])
+    erro_select = st.selectbox("TIPO DE OCORRÊNCIA", ["NENHUMA", "VÁCUO (1.00x)", "BLOCO 1", "SABOTAGEM", "OMISSÃO"])
+    valor_est = st.number_input("VALOR DE ESTORNO (R$)", min_value=0.0, step=0.10)
+    
+    if st.button("🚀 EXECUTAR AUDITORIA"):
+        status_reg = "LIBERADO" if erro_select == "NENHUMA" else "PENDENTE"
+        if erro_select == "VÁCUO (1.00x)": status_reg = "BLOQUEADO"
+        
+        novo_dado = pd.DataFrame([[datetime.now().strftime("%d/%m/%Y"), op_select, erro_select, valor_est, status_reg]], 
+                                 columns=["DATA", "OPERADOR", "ERRO", "ESTORNO", "STATUS"])
+        st.session_state.db_auditoria = pd.concat([st.session_state.db_auditoria, novo_dado], ignore_index=True)
+        st.success(f"AUDITORIA DE {op_select} SALVA!")
+
+# --- CORPO PRINCIPAL ---
 st.title("🛰️ S.P.A. - SENTINELA DE PERFORMANCE ATIVA")
-st.subheader("PROPRIEDADE INTELECTUAL: SIDNEY ALMEIDA")
-st.write(f"**Gestor Geral:** S.A. | **Status:** Sincronizado")
-st.divider()
+st.write(f"**PROPRIEDADE:** SIDNEY ALMEIDA | **STATUS:** SINCRO-ONLINE")
 
-# --- MÉTRICAS ---
-c1, c2, c3 = st.columns(3)
-with c1:
-    st.metric("ESTORNO RECUPERADO", "R$ 1.250,40", "+R$ 180,20")
-with c2:
-    st.metric("EFICIÊNCIA MAILING", "88%", "-4% vácuo")
-with c3:
-    st.metric("ALERTAS DE CONDUTA", "5", "Bloco 1")
+tab1, tab2, tab3 = st.tabs(["📊 VISÃO GERAL", "🔍 FILTRO POR OPERADOR", "📅 RELATÓRIO MENSAL"])
 
-# --- TABELA DA FAVELINHA ---
-st.subheader("📊 Tabela da Favelinha - Controle Realtime")
-dados = {
-    "OPERADOR": ["MARCOS", "ANA", "RICARDO", "JULIA"],
-    "STATUS": ["PENDENTE", "LIBERADO", "BLOQUEADO", "LIBERADO"],
-    "META X (%)": [50.0, 100.0, 0.0, 100.0],
-    "FALHAS (B1)": [2, 0, 3, 0]
-}
-st.table(pd.DataFrame(dados))
+with tab1:
+    st.subheader("Tabela da Favelinha - Realtime")
+    # Tabela dinâmica baseada nos lançamentos
+    st.dataframe(st.session_state.db_auditoria.tail(10), use_container_width=True)
+
+with tab2:
+    st.subheader("Busca Individualizada")
+    filtro_op = st.selectbox("VER HISTÓRICO DE:", ["MARCOS", "ANA", "RICARDO", "JULIA"])
+    resultado = st.session_state.db_auditoria[st.session_state.db_auditoria["OPERADOR"] == filtro_op]
+    st.write(f"Resultados para {filtro_op}:")
+    st.table(resultado)
+
+with tab3:
+    st.subheader("Relatório de Erros e Performance")
+    if not st.session_state.db_auditoria.empty:
+        st.write("Resumo acumulado do mês:")
+        st.dataframe(st.session_state.db_auditoria)
+        # Botão configurado para não dar erro no celular (conforme sua regra)
+        csv = st.session_state.db_auditoria.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 BAIXAR RELATÓRIO COMPLETO", csv, "relatorio_auditoria.csv", "text/csv")
+    else:
+        st.info("Aguardando primeiros lançamentos para gerar relatório.")
 
 # --- RODAPÉ ---
 st.divider()
-st.info(f"💡 **Sistema SPA V2.5** - Desenvolvido por Sidney Almeida.")
-st.caption(f"Servidor Online: {datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+st.caption(f"Sistema Gerenciado por Sidney Almeida - {datetime.now().year}")
+    
