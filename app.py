@@ -2,49 +2,77 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# --- 1. CONFIGURAÇÃO DE SEGURANÇA E INTERFACE ---
+# --- 1. CONFIGURAÇÃO ---
 st.set_page_config(page_title="S.P.A. - Sidney Almeida", layout="wide", page_icon="🛰️")
 
-# --- 2. QUANTUM MEMORY (BANCO DE DADOS EM SESSÃO) ---
+# --- 2. BANCO DE DADOS (MEMÓRIA) ---
 if 'historico' not in st.session_state:
-    # Dados mestre de inicialização
-    st.session_state.historico = pd.DataFrame([
-        {"DATA": "27/01/2026", "OPERADOR": "ANA", "ERRO": "NENHUM", "DETALHE": "PERFORMANCE IDEAL", "ESTORNO": 1250.40, "STATUS": "LIBERADO"},
-        {"DATA": "27/01/2026", "OPERADOR": "MARCOS", "ERRO": "BLOCO 1", "DETALHE": "ERRO DE PROCESSO", "ESTORNO": 0.00, "STATUS": "PENDENTE"}
-    ])
+    st.session_state.historico = pd.DataFrame(columns=["DATA", "OPERADOR", "CATEGORIA", "DETALHE", "ESTORNO", "STATUS", "OBS"])
 
-# --- 3. PAINEL DE COMANDO LATERAL (ONDE VOCÊ MEXE) ---
+# --- 3. BARRA LATERAL (PAINEL DE LANÇAMENTO) ---
 with st.sidebar:
     st.header("🎮 COMANDO S.P.A.")
-    st.subheader("LANÇAR AUDITORIA")
-    
-    with st.form("form_auditoria"):
-        nome = st.selectbox("OPERADOR", ["MARCOS", "ANA", "RICARDO", "JULIA"])
-        categoria = st.selectbox("CATEGORIA MESTRE", ["NENHUM", "SABOTAGEM", "OMISSÃO", "BLOCO 1", "VÁCUO (1.00x)"])
+    with st.form("auditoria_form"):
+        st.subheader("Nova Auditoria")
+        nome = st.selectbox("OPERADOR", ["ANA", "MARCOS", "RICARDO", "JULIA"])
+        cat = st.selectbox("CATEGORIA", ["NENHUM", "SABOTAGEM", "OMISSÃO", "BLOCO 1", "VÁCUO (1.00x)"])
         
-        # Detalhamento dinâmico conforme sua regra de 'operator behavior'
-        detalhe_texto = "N/A"
-        if categoria == "SABOTAGEM":
-            detalhe_texto = st.selectbox("TIPO DE SABOTAGEM", ["Desvio de Script", "Sabotagem de Dialer", "Desligamento Proposital", "Manipulação de Projeção"])
-        elif categoria == "OMISSÃO":
-            detalhe_texto = st.selectbox("TIPO DE OMISSÃO", ["Omissão de Valor", "Omissão de Histórico", "Falta de Registro"])
-        elif categoria == "VÁCUO (1.00x)":
-            detalhe_texto = "ZONA DE MORTE DETECTADA"
+        # Detalhamento dinâmico
+        det = "PERFORMANCE IDEAL"
+        if cat == "SABOTAGEM":
+            det = st.selectbox("TIPO DE SABOTAGEM", ["Desvio de Script", "Sabotagem de Dialer", "Desligamento Proposital", "Manipulação de Projeção"])
+        elif cat == "OMISSÃO":
+            det = st.selectbox("TIPO DE OMISSÃO", ["Omissão de Valor", "Omissão de Histórico", "Falta de Registro"])
+        elif cat == "VÁCUO (1.00x)":
+            det = "VÁCUO DE OPERAÇÃO"
 
-        valor = st.number_input("VALOR EXATO (R$)", min_value=0.0, step=0.10, format="%.2f")
-        obs = st.text_input("OBSERVAÇÕES DO GESTOR")
+        valor_est = st.number_input("ESTORNO RECUPERADO (R$)", min_value=0.0, step=0.10)
+        comentario = st.text_input("OBSERVAÇÃO")
         
-        submit = st.form_submit_button("🚀 EXECUTAR E SINCRONIZAR")
-        
-        if submit:
-            # Lógica Automática de Status e Projeção (-50% se Pendente)
-            status_calc = "LIBERADO"
-            if categoria == "VÁCUO (1.00x)": status_calc = "BLOQUEADO"
-            elif categoria != "NENHUM": status_calc = "PENDENTE"
+        if st.form_submit_button("🚀 SALVAR E SINCRONIZAR"):
+            # Lógica de Status
+            st_calc = "LIBERADO"
+            if cat == "VÁCUO (1.00x)": st_calc = "BLOQUEADO"
+            elif cat != "NENHUM": st_calc = "PENDENTE"
             
-            novo_dado = pd.DataFrame([{
+            novo = pd.DataFrame([{
                 "DATA": datetime.now().strftime("%d/%m/%Y"),
                 "OPERADOR": nome,
-                "ERRO": categoria,
-                "DETAL
-            
+                "CATEGORIA": cat,
+                "DETALHE": det,
+                "ESTORNO": valor_est,
+                "STATUS": st_calc,
+                "OBS": comentario
+            }])
+            st.session_state.historico = pd.concat([st.session_state.historico, novo], ignore_index=True)
+            st.success(f"REGISTRO DE {nome} ENVIADO!")
+
+# --- 4. DASHBOARD PRINCIPAL ---
+st.title("🛰️ S.P.A. - SENTINELA DE PERFORMANCE ATIVA")
+st.write(f"PROPRIEDADE: **SIDNEY ALMEIDA** | STATUS: **SINCRO-ONLINE**")
+
+t1, t2, t3 = st.tabs(["📊 VISÃO GERAL", "🔍 FILTRO OPERADOR", "📥 RELATÓRIO MENSAL"])
+
+with t1:
+    st.subheader("Tabela da Favelinha - Tempo Real")
+    st.dataframe(st.session_state.historico, use_container_width=True)
+
+with t2:
+    st.subheader("Auditoria por Nome")
+    sel_op = st.selectbox("ESCOLHA O ALVO:", ["ANA", "MARCOS", "RICARDO", "JULIA"])
+    st.table(st.session_state.historico[st.session_state.historico["OPERADOR"] == sel_op])
+
+with t3:
+    st.subheader("Exportação de Dados")
+    st.write("Histórico completo do mês:")
+    st.dataframe(st.session_state.historico)
+    
+    # BOTÃO DE RELATÓRIO (Correção para celular)
+    csv_data = st.session_state.historico.to_csv(index=False).encode('utf-8-sig')
+    st.download_button(
+        label="📥 GERAR RELATÓRIO (EXCEL/CSV)",
+        data=csv_data,
+        file_name=f"Relatorio_SPA_{datetime.now().strftime('%m_%Y')}.csv",
+        mime="text/csv"
+)
+    
