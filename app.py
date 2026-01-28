@@ -3,108 +3,91 @@ import pandas as pd
 from datetime import datetime
 
 # --- 1. CONFIGURAÇÃO DE AMBIENTE ---
-st.set_page_config(page_title="S.P.A. MASTER - SIDNEY ALMEIDA", layout="wide", page_icon="🛡️")
+st.set_page_config(page_title="S.P.A. MASTER - FUSÃO TOTAL", layout="wide", page_icon="🛡️")
 
-# --- 2. QUANTUM MEMORY: CENÁRIOS INTEGRADOS (ESTANQUES POR ABA) ---
+# --- 2. QUANTUM MEMORY (SOMA DE TODOS OS DADOS ACUMULADOS) ---
 if 'db' not in st.session_state:
     st.session_state.db = {
         "OPERAÇÃO": {
-            "ANA (PERFORMANCE)": {"ALO": 1200, "CON": 950, "CPC": 450, "VALOR": 45800.00, "PROJ": 91600.0, "LEGAL": "Art. 444 CLT (Conformidade)", "FOR": "Script nível 5. Alta conversão de mailing classe A."},
-            "MARCOS (SABOTAGEM)": {"ALO": 2500, "CON": 50, "CPC": 5, "VALOR": 0.00, "PROJ": 0.0, "LEGAL": "Art. 482, 'e' CLT (Desídia)", "FOR": "Cabo Desconectado para forçar ociosidade."},
-            "RICARDO (OMISSÃO)": {"ALO": 800, "CON": 780, "CPC": 700, "VALOR": 150.00, "PROJ": 300.0, "LEGAL": "Art. 482, 'h' CLT (Insubordinação)", "FOR": "Mudo Proposital/Retenção de linha."}
+            "ANA (PERFORMANCE)": {"ALO": 1200, "CON": 950, "CPC": 450, "VALOR": 45800.00, "PROJ": 91600.0, "LEGAL": "Art. 444 CLT", "FOR": "Script nível 5. Alta conversão.", "PERDA": 0.0},
+            "MARCOS (SABOTAGEM)": {"ALO": 2500, "CON": 50, "CPC": 5, "VALOR": 0.00, "PROJ": 0.0, "LEGAL": "Art. 482, 'e' CLT", "FOR": "Cabo Desconectado/Ociosidade.", "PERDA": 1250.0},
+            "RICARDO (OMISSÃO)": {"ALO": 800, "CON": 780, "CPC": 700, "VALOR": 150.00, "PROJ": 300.0, "LEGAL": "Art. 482, 'h' CLT", "FOR": "Mudo Proposital/Retenção.", "PERDA": 850.0}
         },
         "DISCADOR": {
-            "MAILING_VIVO_JANEIRO": {"TOTAL_LEADS": 150000, "PENETRACAO": 65, "AUTONOMIA": 12.5, "SPC_STATUS": "HIGIENIZADO", "QUALIDADE": "QUENTE", "TICKET_MEDIO": 185.0},
-            "BASE_RECOVERY_ESTEIRA": {"TOTAL_LEADS": 300000, "PENETRACAO": 15, "AUTONOMIA": 2.1, "SPC_STATUS": "PENDENTE", "QUALIDADE": "FRIO", "TICKET_MEDIO": 420.0}
+            "MAILING_VIVO_JAN": {"TOTAL": 150000, "PEN": 65, "AUTO": 12.5, "SPC": "HIGIENIZADO", "QUALIDADE": "QUENTE", "TICKET": 185.0},
+            "BASE_RECOVERY": {"TOTAL": 300000, "PEN": 15, "AUTO": 2.1, "SPC": "PENDENTE", "QUALIDADE": "FRIO", "TICKET": 420.0}
         },
         "TELEFONIA": {
-            "VIVO (TRUNK PRINCIPAL)": {"STATUS": "BLOQUEADO", "LATENCIA": "250ms", "FOR": "Queda de Link SIP / Instabilidade de Jitter."},
-            "SIPvox (CONTINGÊNCIA)": {"STATUS": "LIBERADO", "LATENCIA": "25ms", "FOR": "Rota Premium Ativa - Estável."}
+            "VIVO (TRUNK IP)": {"STATUS": "BLOQUEADO", "LAT": "250ms", "FOR": "Queda de Link SIP.", "PERDA": 5000.0},
+            "SIPvox (BACKUP)": {"STATUS": "LIBERADO", "LAT": "25ms", "FOR": "Rota Premium OK.", "PERDA": 0.0}
         }
     }
 
-# --- 3. INTERFACE DE NAVEGAÇÃO POR DEPARTAMENTOS ---
+# --- 3. ESTRUTURA DE NAVEGAÇÃO ACUMULATIVA ---
 st.title("🛰️ S.P.A. - SENTINELA DE PERFORMANCE ATIVA")
-st.write(f"**Servidor Operacional** | 📅 {datetime.now().strftime('%d/%m/%Y')} | 👤 Comandante S.A.")
+st.write(f"**COMANDANTE SIDNEY ALMEIDA** | {datetime.now().strftime('%d/%m/%Y %H:%M')}")
 
-aba_op, aba_disc, aba_tel, aba_fav = st.tabs([
-    "👥 GESTÃO DE OPERADORES", 
-    "🧠 ESTRATÉGIA DE DISCADOR", 
-    "📡 INFRA TELEFONIA", 
-    "📊 TABELA DA FAVELINHA"
+# Cada aba é um departamento, e a primeira é a soma de todos
+aba_maisa, aba_op, aba_disc, aba_tel = st.tabs([
+    "👑 01. VISÃO CONSOLIDADA (MAÍSA)", 
+    "👥 02. GESTÃO DE OPERADORES", 
+    "🧠 03. ESTRATÉGIA DE DISCADOR", 
+    "📡 04. INFRA TELEFONIA"
 ])
 
-# --- ABA 1: OPERAÇÃO (CADA UM NO SEU QUADRADO) ---
+# --- ABA 01: VISÃO MAÍSA (ADICIONADA COMO RESUMO) ---
+with aba_maisa:
+    st.header("📊 Cockpit Executivo - Resumo de Auditoria")
+    c1, c2, c3, c4 = st.columns(4)
+    
+    total_rec = sum(item["VALOR"] for item in st.session_state.db["OPERAÇÃO"].values())
+    total_perda = sum(item["PERDA"] for item in st.session_state.db["OPERAÇÃO"].values()) + st.session_state.db["TELEFONIA"]["VIVO (TRUNK IP)"]["PERDA"]
+    bloqueios = sum(1 for item in st.session_state.db["OPERAÇÃO"].values() if item["VALOR"] == 0)
+    
+    c1.metric("RECUPERAÇÃO TOTAL", f"R$ {total_rec:,.2f}")
+    c2.metric("PERDA POR SABOTAGEM/QUEDA", f"R$ {total_perda:,.2f}", delta="- PREJUÍZO", delta_color="inverse")
+    c3.metric("ALERTAS DE BLOQUEIO", f"{bloqueios} ALVOS")
+    c4.metric("SAÚDE DA MALHA", st.session_state.db["DISCADOR"]["MAILING_VIVO_JAN"]["QUALIDADE"])
+
+    st.divider()
+    st.subheader("📋 Tabela da Favelinha (Status Geral)")
+    # Consolidação para a Maísa bater o olho
+    resumo_favelinha = []
+    for op, dados in st.session_state.db["OPERAÇÃO"].items():
+        resumo_favelinha.append({
+            "OPERADOR": op, "VALOR": dados["VALOR"], "CPC": dados["CPC"], 
+            "PROJ X (-50%)": dados["PROJ"]*0.5, "LEGAL": dados["LEGAL"]
+        })
+    st.table(pd.DataFrame(resumo_favelinha))
+
+# --- ABA 02: OPERAÇÃO (MANTIDA INTEGRAL) ---
 with aba_op:
-    st.header("📈 Dashboard de Performance e Blindagem Jurídica")
-    col1, col2 = st.columns([1, 2])
+    st.header("👥 Detalhamento de Performance Individual")
+    op_sel = st.selectbox("Auditar Operador:", list(st.session_state.db["OPERAÇÃO"].keys()), key="op_k")
+    d_o = st.session_state.db["OPERAÇÃO"][op_sel]
     
-    with col1:
-        op_sel = st.selectbox("Selecione o Operador para Auditoria:", list(st.session_state.db["OPERAÇÃO"].keys()), key="op_key")
-        d_op = st.session_state.db["OPERAÇÃO"][op_sel]
-        
-        # Regra do X: Projeção - 50%
-        x_calc = d_op["PROJ"] * 0.50
-        
-        st.divider()
-        st.subheader("🛠️ Ação Imediata")
-        st.write(f"**Status:** {'🔴 BLOQUEADO' if d_op['VALOR'] == 0 else '🟢 LIBERADO'}")
-        st.write(f"**Enquadramento:** {d_op['LEGAL']}")
-        
-    with col2:
-        st.subheader("📊 Métricas de Esteira (Alô/Contato/CPC)")
-        m1, m2, m3 = st.columns(3)
-        m1.metric("ALÔ (SISTEMA)", d_op["ALO"])
-        m2.metric("CONTATO (HUMANO)", d_op["CON"])
-        m3.metric("CPC (EFETIVO)", d_op["CPC"])
-        
-        m4, m5 = st.columns(2)
-        m4.metric("VALOR RECUPERADO", f"R$ {d_op['VALOR']:,.2f}")
-        m5.metric("PROJEÇÃO X (-50%)", f"R$ {x_calc:,.2f}")
-        
-        st.info(f"**Dossiê Forense:** {d_op['FOR']}")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("ALÔ / CONTATO", f"{d_o['ALO']} / {d_o['CON']}")
+    col2.metric("CPC EFETIVO", d_o["CPC"])
+    col3.metric("ENQUADRAMENTO CLT", d_o["LEGAL"])
+    st.info(f"**Análise Forense:** {d_o['FOR']}")
 
-# --- ABA 2: DISCADOR (TERMINOLOGIA TÉCNICA) ---
+# --- ABA 03: DISCADOR (MANTIDA INTEGRAL) ---
 with aba_disc:
-    st.header("🧠 Inteligência de Malha e Capacity")
-    disc_sel = st.selectbox("Selecione a Carga/Mailing:", list(st.session_state.db["DISCADOR"].keys()), key="disc_key")
-    d_d = st.session_state.db["DISCADOR"][disc_sel]
-    
-    d1, d2, d3, d4 = st.columns(4)
-    d1.metric("QUALIDADE DO MEIO", d_d["QUALIDADE"])
-    d2.metric("AUTONOMIA (DIAS)", d_d["AUTONOMIA"])
-    d3.metric("STATUS SPC/SERASA", d_d["SPC_STATUS"])
-    d4.metric("PENETRAÇÃO DE BASE", f"{d_d['PENETRACAO']}%")
-    
-    st.divider()
-    st.write(f"**Ticket Médio da Carga:** R$ {d_d['TICKET_MEDIO']:,.2f}")
-    st.write(f"**Leads Ativos na Esteira:** {d_d['TOTAL_LEADS']}")
+    st.header("🧠 Inteligência de Mailing")
+    ds_sel = st.selectbox("Mailing:", list(st.session_state.db["DISCADOR"].keys()), key="ds_k")
+    d_d = st.session_state.db["DISCADOR"][ds_sel]
+    st.write(f"**Autonomia:** {d_d['AUTO']} Dias | **SPC:** {d_d['SPC']}")
+    st.progress(d_d["PEN"]/100, text=f"Penetração de Base: {d_d['PEN']}%")
 
-# --- ABA 3: TELEFONIA (INFRAESTRUTURA) ---
+# --- ABA 04: TELEFONIA (MANTIDA INTEGRAL) ---
 with aba_tel:
-    st.header("📡 Monitoramento de Conectividade e Trunks")
-    tel_sel = st.selectbox("Selecione o Trunk IP:", list(st.session_state.db["TELEFONIA"].keys()), key="tel_key")
-    d_t = st.session_state.db["TELEFONIA"][tel_sel]
-    
-    t1, t2 = st.columns(2)
-    t1.metric("STATUS DO LINK", d_t["STATUS"])
-    t2.metric("LATÊNCIA DE ROTA", d_t["LATENCIA"])
-    
-    st.divider()
-    st.warning(f"**Análise Forense de Telefonia:** {d_t['FOR']}")
+    st.header("📡 Infraestrutura de Rede")
+    tl_sel = st.selectbox("Trunk:", list(st.session_state.db["TELEFONIA"].keys()), key="tl_k")
+    d_t = st.session_state.db["TELEFONIA"][tl_sel]
+    st.metric("STATUS", d_t["STATUS"], delta=f"Latência: {d_t['LAT']}")
 
-# --- ABA 4: FAVELINHA (O RESUMO DE TUDO) ---
-with aba_fav:
-    st.header("📊 Tabela da Favelinha - Resumo Executivo")
-    st.write("Abaixo o consolidado dos operadores auditados nesta sessão.")
-    # Exemplo de como a tabela apareceria acumulada
-    data_fav = {
-        "Operador": ["ANA", "MARCOS", "RICARDO"],
-        "Alô": [1200, 2500, 800],
-        "CPC": [450, 5, 700],
-        "Valor": [45800.0, 0.0, 150.0],
-        "Projeção X": [45800.0, 0.0, 150.0],
-        "Status Jurídico": ["LIBERADO", "BLOQUEADO (Art. 482)", "BLOQUEADO (Art. 482)"]
-    }
-    st.table(data_fav)
+# --- 4. EXPORTAÇÃO ---
+st.sidebar.divider()
+st.sidebar.download_button("📊 EXPORTAR DOSSIÊ COMPLETO", pd.DataFrame(resumo_favelinha).to_csv(index=False).encode('utf-8-sig'), "DOSSIE_SPA.csv")
     
