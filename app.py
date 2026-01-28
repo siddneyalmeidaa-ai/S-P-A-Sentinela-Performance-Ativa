@@ -2,99 +2,81 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# --- 1. CONFIGURAÇÃO DE INTERFACE ---
+# --- CONFIGURAÇÃO ---
 st.set_page_config(page_title="S.P.A. - Sidney Almeida", layout="wide", page_icon="🛰️")
 
-# --- 2. QUANTUM MEMORY (PERSISTÊNCIA DE DADOS) ---
+# --- QUANTUM MEMORY ---
 if 'historico' not in st.session_state:
     st.session_state.historico = pd.DataFrame(columns=[
-        "DATA", "OPERADOR", "VISAO", "MOTIVO", "ESTORNO", "STATUS", "LOG_TECNICO", "SCORE"
+        "DATA", "ALVO", "VISAO", "MOTIVO", "VALOR", "STATUS", "LOG_TECNICO"
     ])
 
-# --- 3. BARRA LATERAL: INPUT DE AUDITORIA ---
+# --- BARRA LATERAL: COMANDO S.P.A. ---
 with st.sidebar:
-    st.header("🎮 COMANDO S.P.A.")
-    with st.form("input_form"):
-        st.subheader("Sincronizar Servidor")
-        op = st.selectbox("OPERADOR", ["ANA", "MARCOS", "RICARDO", "JULIA"])
-        visao = st.radio("VISÃO", ["VISÃO BUSCADOR", "VISÃO OPERAÇÃO"])
+    st.header("🎮 LANÇAMENTO CENTRAL")
+    with st.form("form_sincro"):
+        visao = st.radio("DESTINO DO REGISTRO", ["VISÃO TELEFONIA", "VISÃO DISCADOR", "VISÃO OPERAÇÃO"])
         
-        if visao == "VISÃO BUSCADOR":
-            motivo = st.selectbox("MOTIVO TÉCNICO", [
-                "Sabotagem de Dialer (Fila Presa)",
-                "Desligamento Proposital (Servidor)",
-                "Falsa Promessa (Sem Confirmação)",
-                "Omissão de Histórico Técnico",
-                "Manipulação de Projeção"
-            ])
-            impacto_score = -2  # Penalidade na confiança
+        # Lógica de seleção baseada na visão
+        if visao == "VISÃO TELEFONIA":
+            alvo = st.selectbox("OPERADORA/EMPRESA", ["VIVO", "CLARO", "TIM", "OI", "SIPvox", "TRUNK_IP"])
+            motivo = st.selectbox("MOTIVO TÉCNICO", ["Entrega OK", "Queda de Sinal", "Congestionamento", "Fila Presa", "Bloqueio de Bina"])
+        elif visao == "VISÃO DISCADOR":
+            alvo = st.selectbox("OPERADOR", ["ANA", "MARCOS", "RICARDO", "JULIA"])
+            motivo = st.selectbox("MOTIVO LOGS", ["Sabotagem de Dialer", "Desligamento Proposital", "Falsa Promessa", "Omissão de Histórico"])
         else:
-            motivo = st.selectbox("MOTIVO OPERACIONAL", [
-                "Cumprimento Bloco 1",
-                "Cumprimento Bloco 2",
-                "Vácuo de Operação (1.00x)",
-                "Exposição de Valor (Omissão)",
-                "Estorno Recuperado"
-            ])
-            impacto_score = 1 if "Cumprimento" in motivo or "Estorno" in motivo else -1
+            alvo = st.selectbox("OPERADOR ", ["ANA", "MARCOS", "RICARDO", "JULIA"])
+            motivo = st.selectbox("MOTIVO PERFORMANCE", ["Bloco 1", "Bloco 2", "Vácuo (1.00x)", "Estorno Real"])
             
-        valor = st.number_input("VALOR NEGOCIADO (R$)", min_value=0.0, format="%.2f")
-        logs = st.text_area("LOGS DO DISCADOR/SISTEMA")
+        valor = st.number_input("VALOR DE IMPACTO (R$)", min_value=0.0, format="%.2f")
+        logs = st.text_area("DETALHES DO SERVIDOR")
         
-        if st.form_submit_button("🚀 EXECUTAR E BLINDAR"):
-            # Lógica de Status Automática
+        if st.form_submit_button("🚀 SINCRONIZAR"):
+            # Regra Sidney: Vácuo e Sabotagem bloqueiam na hora
             st_calc = "LIBERADO"
-            if "Vácuo" in motivo or "Sabotagem" in motivo: st_calc = "BLOQUEADO"
-            elif "Omissão" in motivo or "Falsa" in motivo: st_calc = "PENDENTE"
+            if any(x in motivo for x in ["Vácuo", "Sabotagem", "Queda", "Falsa"]): st_calc = "BLOQUEADO"
             
-            novo_dado = pd.DataFrame([{
+            novo = pd.DataFrame([{
                 "DATA": datetime.now().strftime("%d/%m/%Y"),
-                "OPERADOR": op, "VISAO": visao, "MOTIVO": motivo,
-                "ESTORNO": valor, "STATUS": st_calc, "LOG_TECNICO": logs,
-                "SCORE": impacto_score
+                "ALVO": alvo, "VISAO": visao, "MOTIVO": motivo,
+                "VALOR": valor, "STATUS": st_calc, "LOG_TECNICO": logs
             }])
-            st.session_state.historico = pd.concat([st.session_state.historico, novo_dado], ignore_index=True)
-            st.success(f"DADOS SINCRONIZADOS: {op}")
+            st.session_state.historico = pd.concat([st.session_state.historico, novo], ignore_index=True)
+            st.success("SINCRO COMPLETA!")
 
-# --- 4. CORPO PRINCIPAL - DASHBOARD ---
+# --- CORPO PRINCIPAL: AS 3 ABAS DE RELATÓRIO ---
 st.title("🛰️ S.P.A. - SENTINELA DE PERFORMANCE ATIVA")
-st.markdown(f"**GESTOR GERAL:** SIDNEY ALMEIDA | **SINCRO:** ONLINE")
+st.write(f"PROPRIEDADE: **SIDNEY ALMEIDA** | STATUS: **SINCRO-ONLINE**")
 
-# --- 5. RAIO-X AUTOMATIZADO (DUPLA BUSCA) ---
+tab_tel, tab_disc, tab_oper = st.tabs(["📡 RELATÓRIO TELEFONIA", "🔍 RELATÓRIO DISCADOR", "📈 RELATÓRIO OPERAÇÃO"])
+
+with tab_tel:
+    st.subheader("Auditoria de Operadoras e Trunks")
+    df_tel = st.session_state.historico[st.session_state.historico["VISAO"] == "VISÃO TELEFONIA"]
+    st.dataframe(df_tel, use_container_width=True)
+    if not df_tel.empty:
+        st.metric("PERDA POR INSTABILIDADE", f"R$ {df_tel['VALOR'].sum():,.2f}")
+
+with tab_disc:
+    st.subheader("Auditoria de Comportamento e Logs")
+    df_disc = st.session_state.historico[st.session_state.historico["VISAO"] == "VISÃO DISCADOR"]
+    # Busca automática dentro da aba
+    op_busca = st.selectbox("FILTRAR OPERADOR NO DISCADOR:", ["TODOS"] + list(df_disc["ALVO"].unique()))
+    if op_busca != "TODOS":
+        df_disc = df_disc[df_disc["ALVO"] == op_busca]
+    st.table(df_disc[["DATA", "ALVO", "MOTIVO", "STATUS", "LOG_TECNICO"]])
+
+with tab_oper:
+    st.subheader("Auditoria de Performance e Blocos")
+    df_oper = st.session_state.historico[st.session_state.historico["VISAO"] == "VISÃO OPERAÇÃO"]
+    # Busca automática dentro da aba
+    op_oper = st.selectbox("FILTRAR OPERADOR NA OPERAÇÃO:", ["TODOS"] + list(df_oper["ALVO"].unique()))
+    if op_oper != "TODOS":
+        df_oper = df_oper[df_oper["ALVO"] == op_oper]
+    st.dataframe(df_oper, use_container_width=True)
+    st.metric("RECUPERAÇÃO LÍQUIDA", f"R$ {df_oper['VALOR'].sum():,.2f}")
+
+# --- BOTÃO DE DOWNLOAD GLOBAL ---
 st.divider()
-col1, col2 = st.columns(2)
-
-with col1:
-    st.subheader("🔍 VISÃO BUSCADOR")
-    st.caption("Filtro: Comportamento e Integridade")
-    # Busca inteligente
-    op_b = st.selectbox("PESQUISAR NO DISCADOR:", ["---"] + list(st.session_state.historico[st.session_state.historico["VISAO"]=="VISÃO BUSCADOR"]["OPERADOR"].unique()))
-    
-    if op_b != "---":
-        dados_b = st.session_state.historico[(st.session_state.historico["OPERADOR"] == op_b) & (st.session_state.historico["VISAO"] == "VISÃO BUSCADOR")]
-        st.error(f"Alertas de Conduta: {len(dados_b)}")
-        st.table(dados_b[["MOTIVO", "LOG_TECNICO", "STATUS"]])
-
-with col2:
-    st.subheader("📈 VISÃO OPERAÇÃO")
-    st.caption("Foco: Produção e Blocos")
-    # Busca inteligente
-    op_o = st.selectbox("PESQUISAR NA OPERAÇÃO:", ["---"] + list(st.session_state.historico[st.session_state.historico["VISAO"]=="VISÃO OPERAÇÃO"]["OPERADOR"].unique()))
-    
-    if op_o != "---":
-        dados_o = st.session_state.historico[(st.session_state.historico["OPERADOR"] == op_o) & (st.session_state.historico["VISAO"] == "VISÃO OPERAÇÃO")]
-        # Cálculo de Índice de Confiabilidade (Score base 10)
-        score_total = max(0, min(10, 5 + st.session_state.historico[st.session_state.historico["OPERADOR"] == op_o]["SCORE"].sum()))
-        
-        st.metric("TOTAL EM NEGOCIAÇÃO", f"R$ {dados_o['ESTORNO'].sum():,.2f}")
-        st.metric("ÍNDICE DE CONFIABILIDADE", f"{score_total}/10")
-        st.table(dados_o[["MOTIVO", "ESTORNO", "STATUS"]])
-
-# --- 6. TABELA DA FAVELINHA E RELATÓRIO ---
-st.divider()
-st.subheader("📋 TABELA DA FAVELINHA - CONSOLIDADO")
-st.dataframe(st.session_state.historico, use_container_width=True)
-
-# BOTÃO DE DOWNLOAD (UTF-8-SIG para Excel celular)
 csv = st.session_state.historico.to_csv(index=False).encode('utf-8-sig')
-st.download_button("📥 GERAR RELATÓRIO MENSAL (EXCEL)", csv, f"Relatorio_SPA_{datetime.now().strftime('%d_%m')}.csv", "text/csv")
+st.download_button("📥 BAIXAR RELATÓRIO CONSOLIDADO (EXCEL)", csv, "relatorio_geral_spa.csv", "text/csv")
