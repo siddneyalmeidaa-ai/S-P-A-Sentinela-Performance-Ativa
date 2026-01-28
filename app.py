@@ -2,61 +2,49 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# --- CONFIGURAÇÃO DA INTERFACE ---
+# --- 1. CONFIGURAÇÃO DE SEGURANÇA E INTERFACE ---
 st.set_page_config(page_title="S.P.A. - Sidney Almeida", layout="wide", page_icon="🛰️")
 
-# --- SIMULAÇÃO DE BANCO DE DATOS (Quantum Memory) ---
-if 'db_auditoria' not in st.session_state:
-    st.session_state.db_auditoria = pd.DataFrame(columns=["DATA", "OPERADOR", "ERRO", "ESTORNO", "STATUS"])
+# --- 2. QUANTUM MEMORY (BANCO DE DADOS EM SESSÃO) ---
+if 'historico' not in st.session_state:
+    # Dados mestre de inicialização
+    st.session_state.historico = pd.DataFrame([
+        {"DATA": "27/01/2026", "OPERADOR": "ANA", "ERRO": "NENHUM", "DETALHE": "PERFORMANCE IDEAL", "ESTORNO": 1250.40, "STATUS": "LIBERADO"},
+        {"DATA": "27/01/2026", "OPERADOR": "MARCOS", "ERRO": "BLOCO 1", "DETALHE": "ERRO DE PROCESSO", "ESTORNO": 0.00, "STATUS": "PENDENTE"}
+    ])
 
-# --- BARRA LATERAL (CAMPOS PARA MEXER) ---
+# --- 3. PAINEL DE COMANDO LATERAL (ONDE VOCÊ MEXE) ---
 with st.sidebar:
-    st.header("🎮 PAINEL DE COMANDO")
-    st.subheader("LANÇAR NOVA RODADA")
+    st.header("🎮 COMANDO S.P.A.")
+    st.subheader("LANÇAR AUDITORIA")
     
-    op_select = st.selectbox("SELECIONE O OPERADOR", ["MARCOS", "ANA", "RICARDO", "JULIA", "TODOS"])
-    erro_select = st.selectbox("TIPO DE OCORRÊNCIA", ["NENHUMA", "VÁCUO (1.00x)", "BLOCO 1", "SABOTAGEM", "OMISSÃO"])
-    valor_est = st.number_input("VALOR DE ESTORNO (R$)", min_value=0.0, step=0.10)
-    
-    if st.button("🚀 EXECUTAR AUDITORIA"):
-        status_reg = "LIBERADO" if erro_select == "NENHUMA" else "PENDENTE"
-        if erro_select == "VÁCUO (1.00x)": status_reg = "BLOQUEADO"
+    with st.form("form_auditoria"):
+        nome = st.selectbox("OPERADOR", ["MARCOS", "ANA", "RICARDO", "JULIA"])
+        categoria = st.selectbox("CATEGORIA MESTRE", ["NENHUM", "SABOTAGEM", "OMISSÃO", "BLOCO 1", "VÁCUO (1.00x)"])
         
-        novo_dado = pd.DataFrame([[datetime.now().strftime("%d/%m/%Y"), op_select, erro_select, valor_est, status_reg]], 
-                                 columns=["DATA", "OPERADOR", "ERRO", "ESTORNO", "STATUS"])
-        st.session_state.db_auditoria = pd.concat([st.session_state.db_auditoria, novo_dado], ignore_index=True)
-        st.success(f"AUDITORIA DE {op_select} SALVA!")
+        # Detalhamento dinâmico conforme sua regra de 'operator behavior'
+        detalhe_texto = "N/A"
+        if categoria == "SABOTAGEM":
+            detalhe_texto = st.selectbox("TIPO DE SABOTAGEM", ["Desvio de Script", "Sabotagem de Dialer", "Desligamento Proposital", "Manipulação de Projeção"])
+        elif categoria == "OMISSÃO":
+            detalhe_texto = st.selectbox("TIPO DE OMISSÃO", ["Omissão de Valor", "Omissão de Histórico", "Falta de Registro"])
+        elif categoria == "VÁCUO (1.00x)":
+            detalhe_texto = "ZONA DE MORTE DETECTADA"
 
-# --- CORPO PRINCIPAL ---
-st.title("🛰️ S.P.A. - SENTINELA DE PERFORMANCE ATIVA")
-st.write(f"**PROPRIEDADE:** SIDNEY ALMEIDA | **STATUS:** SINCRO-ONLINE")
-
-tab1, tab2, tab3 = st.tabs(["📊 VISÃO GERAL", "🔍 FILTRO POR OPERADOR", "📅 RELATÓRIO MENSAL"])
-
-with tab1:
-    st.subheader("Tabela da Favelinha - Realtime")
-    # Tabela dinâmica baseada nos lançamentos
-    st.dataframe(st.session_state.db_auditoria.tail(10), use_container_width=True)
-
-with tab2:
-    st.subheader("Busca Individualizada")
-    filtro_op = st.selectbox("VER HISTÓRICO DE:", ["MARCOS", "ANA", "RICARDO", "JULIA"])
-    resultado = st.session_state.db_auditoria[st.session_state.db_auditoria["OPERADOR"] == filtro_op]
-    st.write(f"Resultados para {filtro_op}:")
-    st.table(resultado)
-
-with tab3:
-    st.subheader("Relatório de Erros e Performance")
-    if not st.session_state.db_auditoria.empty:
-        st.write("Resumo acumulado do mês:")
-        st.dataframe(st.session_state.db_auditoria)
-        # Botão configurado para não dar erro no celular (conforme sua regra)
-        csv = st.session_state.db_auditoria.to_csv(index=False).encode('utf-8')
-        st.download_button("📥 BAIXAR RELATÓRIO COMPLETO", csv, "relatorio_auditoria.csv", "text/csv")
-    else:
-        st.info("Aguardando primeiros lançamentos para gerar relatório.")
-
-# --- RODAPÉ ---
-st.divider()
-st.caption(f"Sistema Gerenciado por Sidney Almeida - {datetime.now().year}")
-    
+        valor = st.number_input("VALOR EXATO (R$)", min_value=0.0, step=0.10, format="%.2f")
+        obs = st.text_input("OBSERVAÇÕES DO GESTOR")
+        
+        submit = st.form_submit_button("🚀 EXECUTAR E SINCRONIZAR")
+        
+        if submit:
+            # Lógica Automática de Status e Projeção (-50% se Pendente)
+            status_calc = "LIBERADO"
+            if categoria == "VÁCUO (1.00x)": status_calc = "BLOQUEADO"
+            elif categoria != "NENHUM": status_calc = "PENDENTE"
+            
+            novo_dado = pd.DataFrame([{
+                "DATA": datetime.now().strftime("%d/%m/%Y"),
+                "OPERADOR": nome,
+                "ERRO": categoria,
+                "DETAL
+            
