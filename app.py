@@ -21,7 +21,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. BANCO DE DADOS INTEGRAL (QUANTUM MEMORY) ---
+# --- 2. BANCO DE DADOS INTEGRAL (QUANTUM MEMORY) - CORREÇÃO DEFINITIVA ---
 if 'db' not in st.session_state:
     st.session_state.db = {
         "OPERAÇÃO": {
@@ -72,7 +72,7 @@ aba1, aba2, aba3, aba4, aba5, aba6 = st.tabs([
     "📡 04. INFRA TELEFONIA", "📂 05. CENTRAL DE RELATÓRIOS", "⚖️ 06. VISÃO JURÍDICA"
 ])
 
-# --- ABA 01: VISÃO GERAL (O CONSOLIDADO) ---
+# --- ABA 01: VISÃO ESTRATÉGICA (O CONSOLIDADO) ---
 with aba1:
     st.header("📊 Cockpit Consolidado (Resumo Geral)")
     
@@ -90,7 +90,7 @@ with aba1:
 # --- ABA 02: GESTÃO DE OPERADORES (DETALHE COMPORTAMENTAL) ---
 with aba2:
     st.header("👥 Auditoria de Comportamento e Pausas")
-    op = st.selectbox("Selecione para análise profunda:", list(st.session_state.db["OPERAÇÃO"].keys()), key="sel_v28")
+    op = st.selectbox("Selecione para análise profunda:", list(st.session_state.db["OPERAÇÃO"].keys()), key="sel_op_v29")
     data = st.session_state.db["OPERAÇÃO"][op]
     
     c1, c2, c3, c4 = st.columns(4)
