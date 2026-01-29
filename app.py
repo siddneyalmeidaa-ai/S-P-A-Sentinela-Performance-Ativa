@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# --- 1. CONFIGURAÇÃO E BLINDAGEM ---
+# --- 1. CONFIGURAÇÃO DE BLINDAGEM ---
 st.set_page_config(page_title="S.P.A. MASTER - SIDNEY ALMEIDA", layout="wide", page_icon="🛰️")
 
 st.markdown("""
@@ -18,7 +18,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. BANCO DE DADOS INTEGRAL (PADRÃO OURO) ---
+# --- 2. BANCO DE DADOS INTEGRAL (CORREÇÃO DE SINTAXE) ---
 if 'db' not in st.session_state:
     st.session_state.db = {
         "OPERAÇÃO": {
@@ -58,7 +58,7 @@ for k, v in st.session_state.db["OPERAÇÃO"].items():
         "NEGOCIADO": v.get("VALOR_NEGOCIADO", 0.0),
         "REAL": v.get("VALOR_REAL", 0.0),
         "PROJEÇÃO": proj,
-        "X (-50%)": proj * 0.5,
+        "X (-50%)": (proj * 0.5),
         "STATUS": v.get("STATUS", "PENDENTE"),
         "MINUTOS": v.get("MINUTOS_PAUSA", 0)
     })
@@ -73,34 +73,60 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 st.title("🛰️ S.P.A. - SENTINELA DE PERFORMANCE ATIVA")
-st.write(f"**CONSOLIDE 01-06** | SISTEMA SINCRONIZADO | {datetime.now().strftime('%H:%M:%S')}")
+st.write(f"**CONSOLIDE V57** | SISTEMA INTEGRAL | {datetime.now().strftime('%H:%M:%S')}")
 
 aba1, aba2, aba3, aba4, aba5, aba6 = st.tabs([
     "👑 01. COCKPIT", "👥 02. GESTÃO", "🧠 03. DISCADOR", 
     "📡 04. TELEFONIA", "📂 05. RELATÓRIOS", "⚖️ 06. JURÍDICO"
 ])
 
-# --- ABA 01: COCKPIT (AGORA COM DISCADOR E TELEFONIA INTEGRADOS) ---
+# --- ABA 01: COCKPIT (VISÃO TOTALIZADA) ---
 with aba1:
-    st.header("📊 Cockpit Consolidado de Comando")
+    st.header("📊 Cockpit Consolidado (Tudo Aqui)")
     
-    # Linha 1: Financeiro e Operação
-    col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Localização Geral", f"{(df_audit['LOC %'].mean()):.1f}%", "EFICÁCIA")
-    col2.metric("Contatos (CPCA)", f"{int(df_audit['CPCA'].sum())}", "MÃO NA MASSA")
-    col3.metric("Financeiro Real", f"R$ {df_audit['REAL'].sum():,.2f}")
-    col4.metric("Pausa Coletiva", f"{df_audit['MINUTOS'].sum()} min", delta_color="inverse")
+    # KPIs Operacionais
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Localização Geral", f"{(df_audit['LOC %'].mean()):.1f}%")
+    c2.metric("Contatos (CPCA)", f"{int(df_audit['CPCA'].sum())}")
+    c3.metric("Financeiro Real", f"R$ {df_audit['REAL'].sum():,.2f}")
+    c4.metric("Pausa Equipe", f"{df_audit['MINUTOS'].sum()} min")
 
-    # Linha 2: Discador e Telefonia (AQUI ESTÁ A INFORMAÇÃO QUE FALTAVA)
+    # KPIs de Infraestrutura (Discador e Telefonia que faltavam)
     st.divider()
-    st.subheader("🧠 Status de Infraestrutura (Discador & Rede)")
-    d1, d2, d3 = st.columns(3)
-    d1.metric("IPI (Discador)", f"{st.session_state.db['DISCADOR']['PEN']}%", "PADRÃO OURO")
-    d2.metric("Latência Rede", f"{st.session_state.db['TELEFONIA']['LAT']}ms", delta="CRÍTICO", delta_color="inverse")
-    d3.metric("Mailing", st.session_state.db['DISCADOR']['MAILING'])
+    st.subheader("🧠 Status de Infraestrutura")
+    infra1, infra2, infra3 = st.columns(3)
+    infra1.metric("IPI Discador", f"{st.session_state.db['DISCADOR']['PEN']}%")
+    infra2.metric("Latência Rede", f"{st.session_state.db['TELEFONIA']['LAT']}ms")
+    infra3.metric("Servidor", st.session_state.db['TELEFONIA']['SERVER'])
 
     st.divider()
     st.subheader("🏁 Tabela da Favelinha")
     st.dataframe(df_audit[["OPERADOR", "LOC %", "CPCA", "NEGOCIADO", "REAL", "PROJEÇÃO", "X (-50%)", "STATUS"]].style.format({
-        "REAL": "R$ {:,.2f}", "PROJEÇÃO": "R$ {:,.2f}", "X (-50%)":
+        "REAL": "R$ {:,.2f}", "PROJEÇÃO": "R$ {:,.2f}", "X (-50%)": "R$ {:,.2f}", 
+        "NEGOCIADO": "R$ {:,.2f}", "LOC %": "{:.1f}%"
+    }), use_container_width=True)
+
+# --- ABA 02: GESTÃO (DETALHAMENTO CPCA + LOC) ---
+with aba2:
+    st.header("👥 Gestão por Operador")
+    op_sel = st.selectbox("Selecione:", df_audit["OPERADOR"].tolist())
+    res_op = df_audit[df_audit["OPERADOR"] == op_sel].iloc[0]
+    
+    g1, g2, g3 = st.columns(3)
+    g1.metric("Localização", f"{res_op['LOC %']:.1f}%")
+    g2.metric("CPCA", int(res_op["CPCA"]))
+    g3.metric("X (-50%)", f"R$ {res_op['X (-50%)']:,.2f}")
+
+# --- RESTANTE DAS ABAS ---
+with aba3:
+    st.header("🧠 Discador")
+    st.json(st.session_state.db["DISCADOR"])
+with aba4:
+    st.header("📡 Telefonia")
+    st.json(st.session_state.db["TELEFONIA"])
+with aba5:
+    csv = df_audit.to_csv(index=False).encode('utf-8-sig')
+    st.download_button("📥 DOWNLOAD AUDITORIA", csv, "S_A_SPA_V57.csv", "text/csv")
+with aba6:
+    st.table(df_audit[["OPERADOR", "STATUS"]])
     
