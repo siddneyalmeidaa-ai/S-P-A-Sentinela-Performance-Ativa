@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# --- 1. CONFIGURAÇÃO E BLINDAGEM DE INTERFACE ---
+# --- 1. CONFIGURAÇÃO DE SEGURANÇA E INTERFACE ---
 st.set_page_config(page_title="S.P.A. MASTER - SIDNEY ALMEIDA", layout="wide", page_icon="🛰️")
 
 st.markdown("""
@@ -21,8 +21,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. BANCO DE DADOS INTEGRAL (CORREÇÃO DOS 12 PRINTS) ---
-# Fechamento rigoroso de todas as chaves para evitar SyntaxError
+# --- 2. BANCO DE DADOS INTEGRAL (RESOLUÇÃO DOS PRINTS 04:11-04:21) ---
 if 'db' not in st.session_state:
     st.session_state.db = {
         "OPERAÇÃO": {
@@ -49,7 +48,7 @@ if 'db' not in st.session_state:
         "TELEFONIA": {"LAT": 250, "STATUS": "CRÍTICO", "SERVER": "Vivo Cloud"}
     }
 
-# --- 3. LOGICA DE AUDITORIA E CÁLCULO X (-50%) ---
+# --- 3. LÓGICA DE AUDITORIA E CÁLCULO X (-50%) ---
 df_list = []
 for k, v in st.session_state.db["OPERAÇÃO"].items():
     alo = v.get("ALO", 0)
@@ -57,12 +56,5 @@ for k, v in st.session_state.db["OPERAÇÃO"].items():
     cpc = v.get("CPC", 0)
     df_list.append({
         "OPERADOR": k,
-        "LOC %": (alo / disc * 100),
-        "CPCA (CONTATO)": v.get("CPCA", 0),
-        "CONV %": (cpc / alo * 100) if alo > 0 else 0,
-        "PROMESSAS (Nº)": int(v.get("PROMESSAS_N", 0)),
-        "NEGOCIADO": v.get("VALOR_NEGOCIADO", 0.0),
-        "REAL": v.get("VALOR_REAL", 0.0),
-        "PROJEÇÃO": v.get("PROJ", 0.0),
-        "X (-5
-        
+        "LOC %": (
+    
