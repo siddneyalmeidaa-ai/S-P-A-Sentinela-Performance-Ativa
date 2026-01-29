@@ -2,10 +2,10 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# --- 1. CONFIGURAÇÃO DE SEGURANÇA (PADRÃO OURO S.A.) ---
+# --- 1. CONFIGURAÇÃO DE INTERFACE (PADRÃO OURO S.A.) ---
 st.set_page_config(page_title="S.P.A. MASTER - SIDNEY ALMEIDA", layout="wide", page_icon="🛰️")
 
-# Blindagem contra o erro de Markdown do print 04:07
+# Blindagem contra erros de Markdown/CSS (Correção do print 04:07)
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;} header {visibility: hidden;} footer {visibility: hidden;}
@@ -22,7 +22,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. BANCO DE DADOS INTEGRAL (CORREÇÃO DOS PRINTS 04:11 - 04:19) ---
+# --- 2. BANCO DE DADOS INTEGRAL (QUANTUM MEMORY V49 - CORREÇÃO DE CHAVES) ---
 if 'db' not in st.session_state:
     st.session_state.db = {
         "OPERAÇÃO": {
@@ -38,34 +38,4 @@ if 'db' not in st.session_state:
                 "ALO": 12, "CPC": 0, "CPCA": 0, "PROMESSAS_N": 0,
                 "P1": "00:25:00", "P2": "00:30:00", "LANCHE": "01:00:00", "BANHEIRO": "00:30:00"
             },
-            "JULIA (VÁCUO)": {
-                "VALOR_REAL": 800.0, "PROJ": 1600.0, "VALOR_NEGOCIADO": 2500.0,
-                "STATUS": "12% OK", "MINUTOS_PAUSA": 55, "DISCADAS": 500, 
-                "ALO": 85, "CPC": 8, "CPCA": 4, "PROMESSAS_N": 1,
-                "P1": "00:10:00", "P2": "00:10:00", "LANCHE": "00:20:00", "BANHEIRO": "00:15:00"
-            }
-        },
-        "DISCADOR": {"PEN": 65, "MAILING": "Ativo 2026", "TOTAL_DISCADAS": 2500},
-        "TELEFONIA": {"LAT": 250, "STATUS": "CRÍTICO", "SERVER": "Vivo Cloud"}
-    }
-
-# --- 3. PROCESSAMENTO DE AUDITORIA ---
-df_list = []
-for k, v in st.session_state.db["OPERAÇÃO"].items():
-    alo = v.get("ALO", 0)
-    disc = v.get("DISCADAS", 1)
-    cpc = v.get("CPC", 0)
-    df_list.append({
-        "OPERADOR": k,
-        "LOC %": (alo / disc * 100),
-        "CONV %": (cpc / alo * 100) if alo > 0 else 0,
-        "ALÔ": alo,
-        "CPCA (CONTATO)": v.get("CPCA", 0),
-        "PROMESSAS (Nº)": int(v.get("PROMESSAS_N", 0)),
-        "NEGOCIADO": v.get("VALOR_NEGOCIADO", 0.0),
-        "REAL": v.get("VALOR_REAL", 0.0),
-        "PROJEÇÃO": v.get("PROJ", 0.0),
-        "X (-50%)": v.get("PROJ", 0.0) * 0.5,
-        "STATUS": v.get("STATUS", "PENDENTE"),
-        "MINUTOS": v.get("MINUTOS_PAUSA", 0)
-    
+            
