@@ -18,7 +18,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. BANCO DE DADOS INTEGRAL (CORREÇÃO DE SINTAXE DOS PRINTS) ---
+# --- 2. BANCO DE DADOS INTEGRAL ---
 if 'db' not in st.session_state:
     st.session_state.db = {
         "OPERAÇÃO": {
@@ -45,7 +45,7 @@ if 'db' not in st.session_state:
         "TELEFONIA": {"LAT": 250, "STATUS": "CRÍTICO", "SERVER": "Vivo Cloud"}
     }
 
-# --- 3. PROCESSAMENTO (X = PROJEÇÃO - 50%) ---
+# --- 3. PROCESSAMENTO ---
 df_list = []
 for k, v in st.session_state.db["OPERAÇÃO"].items():
     alo = v.get("ALO", 0)
@@ -77,21 +77,24 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 st.title("🛰️ S.P.A. - SENTINELA DE PERFORMANCE ATIVA")
-st.write(f"**CONSOLIDE V61** | SISTEMA INTEGRAL | {datetime.now().strftime('%H:%M:%S')}")
+st.write(f"**CONSOLIDE V62** | ATUALIZAÇÃO MÉTRICA | {datetime.now().strftime('%H:%M:%S')}")
 
 aba1, aba2, aba3, aba4, aba5, aba6 = st.tabs([
     "👑 01. COCKPIT", "👥 02. GESTÃO", "🧠 03. DISCADOR", 
     "📡 04. TELEFONIA", "📂 05. RELATÓRIOS", "⚖️ 06. JURÍDICO"
 ])
 
-# --- ABA 01: COCKPIT (VISÃO 360º) ---
+# --- ABA 01: COCKPIT (ADICIONADO VOLUME DE PROMESSAS) ---
 with aba1:
     st.header("📊 Cockpit Consolidado (Tudo Aqui)")
-    col1, col2, col3, col4 = st.columns(4)
+    
+    # Grid de 5 colunas para incluir a nova métrica
+    col1, col2, col3, col4, col5 = st.columns(5)
     col1.metric("Localização Geral", f"{(df_audit['LOC %'].mean()):.1f}%")
     col2.metric("Contatos (CPCA)", f"{int(df_audit['CPCA'].sum())}")
-    col3.metric("Recuperado Real", f"R$ {df_audit['REAL'].sum():,.2f}")
-    col4.metric("Pausa Equipe", f"{df_audit['MINUTOS'].sum()} min")
+    col3.metric("Volume Promessas", f"{int(df_audit['PROMESSAS'].sum())}") # <--- NOVO
+    col4.metric("Recuperado Real", f"R$ {df_audit['REAL'].sum():,.2f}")
+    col5.metric("Pausa Equipe", f"{df_audit['MINUTOS'].sum()} min")
 
     st.divider()
     st.subheader("🧠 Infraestrutura")
@@ -104,39 +107,7 @@ with aba1:
     st.subheader("🏁 Tabela da Favelinha")
     st.dataframe(df_audit, use_container_width=True)
 
-# --- ABA 02: GESTÃO (ANATOMIA DO FUNIL COMPLETA - CORRIGIDA) ---
+# --- ABA 02: GESTÃO ---
 with aba2:
     st.header("👥 Anatomia do Funil Individual")
-    op_sel = st.selectbox("Selecione para análise profunda:", df_audit["OPERADOR"].tolist())
-    res = df_audit[df_audit["OPERADOR"] == op_sel].iloc[0]
-    p_raw = st.session_state.db["OPERAÇÃO"][op_sel]
-    
-    # LINHA 1: FUNIL DE CHAMADAS
-    st.subheader("📞 Funil de Chamadas")
-    f1, f2, f3, f4 = st.columns(4)
-    f1.metric("Alô (Atendidas)", int(res["ALÔ"]))
-    f2.metric("CPC (Contatos)", int(res["CPC"]))
-    f3.metric("CPCA (Efetivos)", int(res["CPCA"]))
-    f4.metric("Promessas (Nº)", int(res["PROMESSAS"]))
-    
-    # LINHA 2: PERFORMANCE E METAS X
-    st.divider()
-    st.subheader("📈 Eficiência e Alvos")
-    p1, p2, p3, p4 = st.columns(4)
-    p1.metric("Taxa Localização", f"{res['LOC %']:.1f}%")
-    p2.metric("Conversão (Prom/Alô)", f"{res['CONV %']:.1f}%")
-    p3.metric("Valor Real", f"R$ {res['REAL']:,.2f}")
-    p4.metric("Meta X (-50%)", f"R$ {res['X (-50%)']:,.2f}")
-
-    # LINHA 3: COMPORTAMENTAL E SABOTAGEM
-    st.divider()
-    st.subheader("⚖️ Monitoramento de Sabotagem")
-    st.write(f"**Pausas Detalhadas:** P1: {p_raw['P1']} | P2: {p_raw['P2']} | Lanche: {p_raw['LANCHE']} | Banheiro: {p_raw['BANHEIRO']}")
-    st.warning(f"Ação Imediata: {'ENTRA' if res['CONV %'] > 15 else 'PULA'}")
-
-# --- DEMAIS ABAS ACUMULATIVAS ---
-with aba3: st.json(st.session_state.db["DISCADOR"])
-with aba4: st.json(st.session_state.db["TELEFONIA"])
-with aba5: st.download_button("📥 DOWNLOAD V61", df_audit.to_csv().encode('utf-8-sig'), "S_A_SPA_V61.csv")
-with aba6: st.table(df_audit[["OPERADOR", "STATUS"]])
-    
+    op_sel = st.
