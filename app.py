@@ -3,122 +3,94 @@ import pandas as pd
 import hashlib
 from datetime import datetime
 from docx import Document
-from docx.shared import Pt
 import io
 
-# --- 1. CONFIGURAÇÃO DE AMBIENTE S.A. ---
-st.set_page_config(page_title="S.P.A. MASTER - SIDNEY ALMEIDA", layout="wide")
+# --- 1. CAMADA DE SOBERANIA (CONFIGURAÇÃO & BLINDAGEM) ---
+st.set_page_config(page_title="S.P.A. MASTER - V96 SUPREMO", layout="wide")
 
-# CSS BLINDADO - LINHA ÚNICA PARA ESTABILIDADE TOTAL NO SERVIDOR
-st.markdown("<style>#MainMenu {visibility: hidden;} header {visibility: hidden;} footer {visibility: hidden;} .stDeployButton {display:none;} .manifesto-container {background-color: #050505; border-left: 5px solid #00FF41; padding: 20px; border-radius: 10px; margin-bottom: 25px;} .quote-text { color: #00FF41; font-size: 18px; font-weight: bold; font-style: italic; } .signature { color: #D4AF37; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; } .ofensor-red { color: #FF0000; font-weight: bold; border: 2px solid #FF0000; padding: 10px; border-radius: 5px; text-align: center; }</style>", unsafe_allow_html=True)
+# CSS PROPRIETÁRIO S.A.
+st.markdown("""
+<style>
+    #MainMenu {visibility: hidden;} header {visibility: hidden;} footer {visibility: hidden;}
+    .manifesto-container {background-color: #050505; border-left: 5px solid #00FF41; padding: 20px; border-radius: 10px; margin-bottom: 25px;}
+    .quote-text { color: #00FF41; font-size: 18px; font-weight: bold; font-style: italic; }
+    .signature { color: #D4AF37; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; }
+    .ofensor-red { color: #FF0000; font-weight: bold; background-color: rgba(255,0,0,0.1); padding: 5px; border-radius: 3px; }
+</style>
+""", unsafe_allow_html=True)
 
-# --- 2. BANCO DE DADOS INTEGRAL (PADRÃO OURO S.A.) ---
+# --- 2. BANCO DE DADOS INTEGRAL (PADRÃO OURO) ---
 if 'db' not in st.session_state:
     st.session_state.db = {
         "OPERAÇÃO": {
-            "ANA (PERFORMANCE)": {
-                "CPF": "123.456.789-01", "VALOR_REAL": 46600.0, "PROJ": 93200.0, 
-                "STATUS": "85% LIBERADO", "TEMPO_LOGADO": "08:00:00", "PAUSA": 40, 
-                "ALO": 450, "CPC": 120, "CPCA": 95, "PROMESSAS_N": 70, "SABOTAGEM_SCORE": 0
-            },
-            "MARCOS (SABOTAGEM)": {
-                "CPF": "456.123.789-55", "VALOR_REAL": 0.0, "PROJ": 0.0, 
-                "STATUS": "0% PENDENTE", "TEMPO_LOGADO": "03:15:00", "PAUSA": 125, 
-                "ALO": 12, "CPC": 2, "CPCA": 1, "PROMESSAS_N": 0, "SABOTAGEM_SCORE": 85
-            }
+            "ANA (PERFORMANCE)": {"CPF": "123.456.789-01", "VALOR_REAL": 46600.0, "PROJ": 93200.0, "PAUSA": 40, "ALO": 450, "CPCA": 95, "PROMESSAS": 70, "SABOTAGEM": 0},
+            "MARCOS (SABOTAGEM)": {"CPF": "456.123.789-55", "VALOR_REAL": 0.0, "PROJ": 0.0, "PAUSA": 125, "ALO": 12, "CPCA": 1, "PROMESSAS": 0, "SABOTAGEM": 85}
         },
-        "DISCADOR": {
-            "IA_SENTINELA": "ATIVO", "MAILING": "MAILING_OURO_V1", 
-            "DESCONHECIDOS": 42.5, "INEXISTENTES": 28.1, "CAIXA_POSTAL": 15.4,
-            "VACUO_DETECTADO": False
-        },
-        "TELEFONIA": {
-            "LAT": 380, "SERVER": "Vivo Cloud"
-        }
+        "DISCADOR": {"IA_SENTINELA": "ATIVO", "LIXO_TOTAL": 70.6, "DESCONHECIDOS": 42.5, "INEXISTENTES": 28.1},
+        "TELEFONIA": {"LAT": 380, "SERVER": "Vivo Cloud", "JITTER": "2ms"},
+        "IPI": "S.A.-V96-2026"
     }
 
-# --- 3. LÓGICA DE PERFORMANCE (CONVERSÃO: PROMESSA / CPCA) ---
-LIMITE_PAUSA = 45
+# --- 3. MOTOR DE CÁLCULO & LÓGICA DE GUERRA ---
 df_list = []
 for k, v in st.session_state.db["OPERAÇÃO"].items():
-    prom = v.get("PROMESSAS_N", 0)
-    cpca = v.get("CPCA", 0)
-    # REGRA: PROMESSA / CPCA
-    conv = round((prom / cpca * 100), 1) if cpca > 0 else 0
+    conv = round((v["PROMESSAS"] / v["CPCA"] * 100), 1) if v["CPCA"] > 0 else 0
+    proj_x = v["PROJ"] * 0.5 # REGRA X -50%
+    dano = (v["PAUSA"] - 45) * 0.95 if v["PAUSA"] > 45 else 0
     df_list.append({
-        "OPERADOR": k, "CPF": v.get("CPF"), "ALÔ": v.get("ALO"), "CPCA": cpca, 
-        "PROMESSAS": prom, "CONV %": conv, "REAL": v.get("VALOR_REAL", 0.0),
-        "X (-50%)": (v.get("PROJ", 0.0) * 0.5), "LOGADO": v.get("TEMPO_LOGADO", "00:00:00"), 
-        "PAUSA": v.get("PAUSA", 0), "SABOTAGEM": v.get("SABOTAGEM_SCORE", 0),
-        "STATUS": v.get("STATUS")
+        "OPERADOR": k, "CPF": v["CPF"], "CPCA": v["CPCA"], "PROMESSAS": v["PROMESSAS"],
+        "CONV %": conv, "X (-50%)": proj_x, "PAUSA": v["PAUSA"], "DANO R$": round(dano, 2),
+        "STATUS": "85% LIBERADO" if conv > 50 else "0% PENDENTE"
     })
 df_audit = pd.DataFrame(df_list)
 
-# --- 4. MOTOR JURÍDICO (ADVERTÊNCIA WORD) ---
-def gerar_advertencia_word(nome, cpf, pausa, dano):
-    doc = Document()
-    doc.add_heading('ADVERTÊNCIA DISCIPLINAR - S.A. COMPLIANCE', 0)
-    doc.add_paragraph(f"DATA: {datetime.now().strftime('%d/%m/%Y')}")
-    doc.add_paragraph(f"OPERADOR: {nome} | CPF: {cpf}")
-    doc.add_heading('RELATÓRIO DE INFRAÇÃO', level=1)
-    doc.add_paragraph(f"Detectada pausa excedente de {pausa} min. Limite Operacional: {LIMITE_PAUSA}m.")
-    doc.add_paragraph(f"Dano Financeiro Calculado: R$ {dano:.2f}")
-    doc.add_paragraph("\n\n__________________________\nAssinatura do Colaborador")
-    doc.add_paragraph("__________________________\nSidney Almeida - Comando S.A.")
-    output = io.BytesIO()
-    doc.save(output)
-    output.seek(0)
-    return output
-
-# --- 5. INTERFACE S.A. (7 ABAS COMPLETAS) ---
-st.markdown('<div class="manifesto-container"><div class="quote-text">"S.P.A. MASTER - SIDNEY ALMEIDA"</div><div class="signature">👊🚀 — COMANDANTE S.A.</div></div>', unsafe_allow_html=True)
+# --- 4. INTERFACE S.A. SUPREMO ---
+st.markdown('<div class="manifesto-container"><div class="quote-text">"S.P.A. MASTER - SIDNEY ALMEIDA | V96"</div><div class="signature">👊🚀 — COMANDANTE S.A. | IPI: SINCRO_S.A.</div></div>', unsafe_allow_html=True)
 
 tabs = st.tabs(["👑 01. COCKPIT", "👥 02. GESTÃO CPF", "☎️ 03. DISCADOR", "📡 04. TELEFONIA", "🐍 05. SABOTAGEM", "⚖️ 06. JURÍDICO", "📂 07. EXPORTAÇÃO"])
 
 with tabs[0]: # COCKPIT
-    c = st.columns(4)
-    c[0].metric("CPCA Total", int(df_audit["CPCA"].sum()))
-    c[1].metric("Promessas Total", int(df_audit["PROMESSAS"].sum()))
-    c[2].metric("Conv Média %", f"{df_audit['CONV %'].mean():.1f}%")
-    c[3].metric("Total X (-50%)", f"R$ {df_audit['X (-50%)'].sum():,.2f}")
     st.subheader("🏁 Tabela da Favelinha")
-    st.dataframe(df_audit, use_container_width=True)
+    # Alerta Vermelho Automático
+    def highlight_pausa(val):
+        color = 'red' if val > 45 else 'white'
+        return f'color: {color}'
+    st.dataframe(df_audit.style.applymap(highlight_pausa, subset=['PAUSA']), use_container_width=True)
+    st.metric("Total X do Servidor", f"R$ {df_audit['X (-50%)'].sum():,.2f}")
 
 with tabs[1]: # GESTÃO CPF
-    st.header("👥 Auditoria Individual")
-    op_sel = st.selectbox("Selecione para Espelhar:", df_audit["OPERADOR"].tolist(), key="op_select")
-    res_ind = df_audit[df_audit["OPERADOR"] == op_sel].iloc[0]
-    st.info(f"Terminal CPF: {res_ind['CPF']}")
-    st.metric("Meta X Indiv.", f"R$ {res_ind['X (-50%)']:,.2f}")
-    st.radio("Ação:", ["ENTRA", "PULA", "NÃO ENTRA"], horizontal=True, key="acao_radio")
+    op_sel = st.selectbox("Espelhar Terminal (CPF):", df_audit["OPERADOR"].tolist())
+    res = df_audit[df_audit["OPERADOR"] == op_sel].iloc[0]
+    st.info(f"Visualizando terminal de {op_sel} | CPF: {res['CPF']}")
+    st.metric("Meta X Rodada", f"R$ {res['X (-50%)']:,.2f}")
+    st.radio("COMANDO IMEDIATO:", ["ENTRA", "PULA", "NÃO ENTRA"], horizontal=True)
 
 with tabs[2]: # DISCADOR
-    st.header("☎️ Diagnóstico Discador (IA-SENTINELA)")
-    d = st.session_state.db["DISCADOR"]
-    st.error(f"Lixo Detectado: {(d['DESCONHECIDOS'] + d['INEXISTENTES']):.1f}%")
-    st.write(f"Mailing Ativo: {d['MAILING']}")
-    if d["VACUO_DETECTADO"]:
-        st.warning("⚠️ ZONA DE VÁCUO (1.00x) DETECTADA!")
+    st.header("☎️ Inteligência de Mailing")
+    st.error(f"Lixo Detectado: {st.session_state.db['DISCADOR']['LIXO_TOTAL']}%")
+    st.write(f"Desconhecidos: {st.session_state.db['DISCADOR']['DESCONHECIDOS']}% | Inexistentes: {st.session_state.db['DISCADOR']['INEXISTENTES']}%")
 
 with tabs[3]: # TELEFONIA
-    st.header("📡 Telefonia")
-    st.warning(f"Latência: {st.session_state.db['TELEFONIA']['LAT']}ms")
+    st.header("📡 Infraestrutura Cloud")
+    st.warning(f"Latência Vivo Cloud: {st.session_state.db['TELEFONIA']['LAT']}ms")
+    st.write(f"Servidor: {st.session_state.db['TELEFONIA']['SERVER']} | Jitter: {st.session_state.db['TELEFONIA']['JITTER']}")
 
 with tabs[4]: # SABOTAGEM
-    st.header("🐍 Score de Sabotagem")
-    st.table(df_audit[["OPERADOR", "SABOTAGEM", "PAUSA"]])
+    st.header("🐍 O Sentinela")
+    st.table(df_audit[df_audit["PAUSA"] > 45][["OPERADOR", "PAUSA", "DANO R$"]])
 
 with tabs[5]: # JURÍDICO
-    st.header("⚖️ Gestão de Termos")
-    ofensores = df_audit[df_audit["PAUSA"] > LIMITE_PAUSA]
-    for _, row in ofensores.iterrows():
-        dano_calc = row['PAUSA'] * 0.95
-        with st.expander(f"⚖️ GERAR PARA: {row['OPERADOR']}"):
-            f_word = gerar_advertencia_word(row['OPERADOR'], row['CPF'], row['PAUSA'], dano_calc)
-            st.download_button(f"BAIXAR WORD - {row['OPERADOR']}", f_word, f"Termo_{row['CPF']}.docx", key=f"dl_{row['CPF']}")
+    st.header("⚖️ Blindagem Legal")
+    ofensor = st.selectbox("Selecionar Infrator:", df_audit[df_audit["PAUSA"] > 45]["OPERADOR"].tolist())
+    if ofensor:
+        dados_o = df_audit[df_audit["OPERADOR"] == ofensor].iloc[0]
+        st.text_area("Memorial Descritivo:", f"Detectada sabotagem por pausa excessiva de {dados_o['PAUSA']} minutos, gerando dano patrimonial de R$ {dados_o['DANO R$']}.")
+        st.write("Punição Sugerida: Advertência Formal + Suspensão.")
 
 with tabs[6]: # EXPORTAÇÃO
-    st.header("📂 Exportar Base Ouro")
-    csv = df_audit.to_csv(index=False).encode('utf-8-sig')
-    st.download_button("EXPORTAR RELATÓRIO FINAL", csv, "S_A_V114.csv", key="export_final")
-              
+    st.header("📂 Relatórios Ouro")
+    csv_data = df_audit.to_csv(index=False).encode('utf-8-sig')
+    hash_sa = hashlib.sha256(csv_data).hexdigest()
+    st.write(f"Hash de Integridade (SHA-256): `{hash_sa}`")
+    st.download_button("EXPORTAR RELATÓRIO FORENSE", csv_data, f"S_A_V96_{datetime.now().strftime('%Y%m%d')}.csv")
+    
