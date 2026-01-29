@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# --- 1. CONFIGURAÇÃO DE INTERFACE (BLINDAGEM VISUAL) ---
+# --- 1. CONFIGURAÇÃO E BLINDAGEM ---
 st.set_page_config(page_title="S.P.A. MASTER - SIDNEY ALMEIDA", layout="wide", page_icon="🛰️")
 
 st.markdown("""
@@ -45,7 +45,7 @@ if 'db' not in st.session_state:
         "TELEFONIA": {"LAT": 250, "STATUS": "CRÍTICO", "SERVER": "Vivo Cloud"}
     }
 
-# --- 3. PROCESSAMENTO E CÁLCULOS (X = PROJEÇÃO - 50%) ---
+# --- 3. PROCESSAMENTO (X = PROJEÇÃO - 50%) ---
 df_list = []
 for k, v in st.session_state.db["OPERAÇÃO"].items():
     alo = v.get("ALO", 0)
@@ -60,12 +60,11 @@ for k, v in st.session_state.db["OPERAÇÃO"].items():
         "PROJEÇÃO": proj,
         "X (-50%)": proj * 0.5,
         "STATUS": v.get("STATUS", "PENDENTE"),
-        "MINUTOS": v.get("MINUTOS_PAUSA", 0),
-        "PROMESSAS": v.get("PROMESSAS_N", 0)
+        "MINUTOS": v.get("MINUTOS_PAUSA", 0)
     })
 df_audit = pd.DataFrame(df_list)
 
-# --- 4. CABEÇALHO DE COMANDO ---
+# --- 4. CABEÇALHO ---
 st.markdown(f"""
     <div class="manifesto-container">
         <div class="quote-text">"Enquanto o mundo olha para o avião que sobe, eu governo o código que o faz voar."</div>
@@ -76,63 +75,32 @@ st.markdown(f"""
 st.title("🛰️ S.P.A. - SENTINELA DE PERFORMANCE ATIVA")
 st.write(f"**CONSOLIDE 01-06** | SISTEMA SINCRONIZADO | {datetime.now().strftime('%H:%M:%S')}")
 
-# --- 5. ESTRUTURA DE ABAS (VISÃO INTEGRAL) ---
 aba1, aba2, aba3, aba4, aba5, aba6 = st.tabs([
     "👑 01. COCKPIT", "👥 02. GESTÃO", "🧠 03. DISCADOR", 
     "📡 04. TELEFONIA", "📂 05. RELATÓRIOS", "⚖️ 06. JURÍDICO"
 ])
 
-# --- ABA 01: COCKPIT (VISÃO CONSOLIDADA) ---
+# --- ABA 01: COCKPIT (AGORA COM DISCADOR E TELEFONIA INTEGRADOS) ---
 with aba1:
-    st.header("📊 Cockpit Consolidado")
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Localização Geral", f"{(df_audit['LOC %'].mean()):.1f}%", "EFICÁCIA")
-    m2.metric("Contatos (CPCA)", f"{int(df_audit['CPCA'].sum())}", "MÃO NA MASSA")
-    m3.metric("Financeiro Real", f"R$ {df_audit['REAL'].sum():,.2f}", "RECUPERADO")
-    m4.metric("Pausa Equipe", f"{df_audit['MINUTOS'].sum()} min", delta_color="inverse")
+    st.header("📊 Cockpit Consolidado de Comando")
+    
+    # Linha 1: Financeiro e Operação
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Localização Geral", f"{(df_audit['LOC %'].mean()):.1f}%", "EFICÁCIA")
+    col2.metric("Contatos (CPCA)", f"{int(df_audit['CPCA'].sum())}", "MÃO NA MASSA")
+    col3.metric("Financeiro Real", f"R$ {df_audit['REAL'].sum():,.2f}")
+    col4.metric("Pausa Coletiva", f"{df_audit['MINUTOS'].sum()} min", delta_color="inverse")
+
+    # Linha 2: Discador e Telefonia (AQUI ESTÁ A INFORMAÇÃO QUE FALTAVA)
+    st.divider()
+    st.subheader("🧠 Status de Infraestrutura (Discador & Rede)")
+    d1, d2, d3 = st.columns(3)
+    d1.metric("IPI (Discador)", f"{st.session_state.db['DISCADOR']['PEN']}%", "PADRÃO OURO")
+    d2.metric("Latência Rede", f"{st.session_state.db['TELEFONIA']['LAT']}ms", delta="CRÍTICO", delta_color="inverse")
+    d3.metric("Mailing", st.session_state.db['DISCADOR']['MAILING'])
 
     st.divider()
     st.subheader("🏁 Tabela da Favelinha")
     st.dataframe(df_audit[["OPERADOR", "LOC %", "CPCA", "NEGOCIADO", "REAL", "PROJEÇÃO", "X (-50%)", "STATUS"]].style.format({
-        "REAL": "R$ {:,.2f}", "PROJEÇÃO": "R$ {:,.2f}", "X (-50%)": "R$ {:,.2f}", 
-        "NEGOCIADO": "R$ {:,.2f}", "LOC %": "{:.1f}%"
-    }), use_container_width=True)
-
-# --- ABA 02: GESTÃO (INCLUSÃO DE CPCA E LOCALIZAÇÃO) ---
-with aba2:
-    st.header("👥 Anatomia do Funil Individual")
-    op_sel = st.selectbox("Selecione Operador para Auditoria:", df_audit["OPERADOR"].tolist())
-    res_op = df_audit[df_audit["OPERADOR"] == op_sel].iloc[0]
+        "REAL": "R$ {:,.2f}", "PROJEÇÃO": "R$ {:,.2f}", "X (-50%)":
     
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Taxa Localização", f"{res_op['LOC %']:.1f}%")
-    c2.metric("CPCA (Contatos)", int(res_op["CPCA"]))
-    c3.metric("Valor Negociado", f"R$ {res_op['NEGOCIADO']:,.2f}")
-    c4.metric("Promessas (Nº)", int(res_op["PROMESSAS"]))
-    
-    st.divider()
-    p_raw = st.session_state.db["OPERAÇÃO"][op_sel]
-    st.info(f"Monitor de Pausas: P1: {p_raw['P1']} | P2: {p_raw['P2']} | Lanche: {p_raw['LANCHE']} | Banheiro: {p_raw['BANHEIRO']}")
-
-# --- ABA 03: DISCADOR ---
-with aba3:
-    st.header("🧠 Estratégia de Discador")
-    st.metric("IPI (Padrão Ouro)", f"{st.session_state.db['DISCADOR']['PEN']}%")
-    st.write(f"Mailing em uso: **{st.session_state.db['DISCADOR']['MAILING']}**")
-
-# --- ABA 04: TELEFONIA ---
-with aba4:
-    st.header("📡 Infraestrutura de Rede")
-    st.metric("Latência", f"{st.session_state.db['TELEFONIA']['LAT']}ms")
-    st.error(f"Servidor: {st.session_state.db['TELEFONIA']['SERVER']} | Status: {st.session_state.db['TELEFONIA']['STATUS']}")
-
-# --- ABA 05: RELATÓRIOS (CORREÇÃO DE ACENTOS) ---
-with aba5:
-    st.header("📂 Exportação de Dados")
-    csv = df_audit.to_csv(index=False).encode('utf-8-sig')
-    st.download_button("📥 EXPORTAR AUDITORIA V55", csv, "S_A_SPA_AUDITORIA.csv", "text/csv")
-
-# --- ABA 06: JURÍDICO ---
-with aba6:
-    st.header("⚖️ Auditoria de Status")
-    st.table(df_audit[["OPERADOR", "STATUS"]])
