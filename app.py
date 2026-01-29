@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 
-# --- 1. CONFIGURAÇÃO E BLINDAGEM DE ESTILO ---
+# --- 1. CONFIGURAÇÃO DE INTERFACE E BLINDAGEM ---
 st.set_page_config(page_title="S.P.A. MASTER - SIDNEY ALMEIDA", layout="wide", page_icon="🛰️")
 
 st.markdown("""
@@ -18,7 +18,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. BANCO DE DADOS COMPLETO E SINCRONIZADO ---
+# --- 2. BANCO DE DADOS ÚNICO (FECHAMENTO DE CHAVES GARANTIDO) ---
 if 'db' not in st.session_state:
     st.session_state.db = {
         "OPERAÇÃO": {
@@ -45,7 +45,7 @@ if 'db' not in st.session_state:
         "TELEFONIA": {"LAT": 250, "STATUS": "CRÍTICO", "SERVER": "Vivo Cloud"}
     }
 
-# --- 3. LÓGICA DE AUDITORIA (TABELA DA FAVELINHA + X -50%) ---
+# --- 3. PROCESSAMENTO DE DADOS (CÁLCULO X -50% E CPCA) ---
 df_list = []
 for k, v in st.session_state.db["OPERAÇÃO"].items():
     alo = v.get("ALO", 0)
@@ -60,7 +60,8 @@ for k, v in st.session_state.db["OPERAÇÃO"].items():
         "X (-50%)": v.get("PROJ", 0.0) * 0.5,
         "STATUS": v.get("STATUS", "PENDENTE"),
         "MINUTOS": v.get("MINUTOS_PAUSA", 0),
-        "PROMESSAS (Nº)": v.get("PROMESSAS_N", 0)
+        "DISCADAS": disc,
+        "ALÔ": alo
     })
 df_audit = pd.DataFrame(df_list)
 
@@ -73,61 +74,63 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 st.title("🛰️ S.P.A. - SENTINELA DE PERFORMANCE ATIVA")
-st.write(f"**CONSOLIDE V53** | {datetime.now().strftime('%H:%M:%S')}")
+st.write(f"**CONSOLIDE V54** | SISTEMA SINCRONIZADO | {datetime.now().strftime('%H:%M:%S')}")
 
-# --- RESTAURAÇÃO DAS ABAS ---
+# --- RESTAURAÇÃO DAS ABAS COMPLETAS ---
 aba1, aba2, aba3, aba4, aba5, aba6 = st.tabs([
     "👑 01. COCKPIT", "👥 02. GESTÃO", "🧠 03. DISCADOR", 
     "📡 04. TELEFONIA", "📂 05. RELATÓRIOS", "⚖️ 06. JURÍDICO"
 ])
 
-# --- ABA 01: COCKPIT (VOLTOU TUDO) ---
+# --- ABA 01: COCKPIT ---
 with aba1:
     st.header("📊 Cockpit Consolidado")
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Localização Geral", f"{(df_audit['LOC %'].mean()):.1f}%", "EFICÁCIA")
     m2.metric("Contatos (CPCA)", f"{int(df_audit['CPCA'].sum())}", "MÃO NA MASSA")
-    m3.metric("Financeiro Real", f"R$ {df_audit['REAL'].sum():,.2f}", "RECUPERADO")
+    m3.metric("Financeiro Real", f"R$ {df_audit['REAL'].sum():,.2f}")
     m4.metric("Pausa Equipe", f"{df_audit['MINUTOS'].sum()} min", delta_color="inverse")
 
     st.divider()
     st.subheader("🏁 Tabela da Favelinha")
-    st.dataframe(df_audit.style.format({
+    st.dataframe(df_audit[["OPERADOR", "LOC %", "CPCA", "NEGOCIADO", "REAL", "PROJEÇÃO", "X (-50%)", "STATUS"]].style.format({
         "REAL": "R$ {:,.2f}", "PROJEÇÃO": "R$ {:,.2f}", "X (-50%)": "R$ {:,.2f}", 
         "NEGOCIADO": "R$ {:,.2f}", "LOC %": "{:.1f}%"
     }), use_container_width=True)
 
-# --- ABA 02: GESTÃO (DETALHAMENTO) ---
+# --- ABA 02: GESTÃO (INCLUSÃO DE CPCA E LOCALIZAÇÃO POR OPERADOR) ---
 with aba2:
-    st.header("👥 Detalhamento do Funil")
-    op = st.selectbox("Selecione Operador:", df_audit["OPERADOR"].tolist())
-    res = df_audit[df_audit["OPERADOR"] == op].iloc[0]
+    st.header("👥 Anatomia do Funil Individual")
+    op_sel = st.selectbox("Selecione para análise profunda:", df_audit["OPERADOR"].tolist())
+    res_op = df_audit[df_audit["OPERADOR"] == op_sel].iloc[0]
     
-    c1, c2, c3 = st.columns(3)
-    c1.metric("CPCA Individual", int(res["CPCA"]))
-    c2.metric("Valor Negociado", f"R$ {res['NEGOCIADO']:,.2f}")
-    c3.metric("Promessas (Nº)", int(res["PROMESSAS (Nº)"]))
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Taxa Localização", f"{res_op['LOC %']:.1f}%")
+    c2.metric("CPCA (Contatos)", int(res_op["CPCA"]))
+    c3.metric("Valor Negociado", f"R$ {res_op['NEGOCIADO']:,.2f}")
+    c4.metric("X (-50%)", f"R$ {res_op['X (-50%)']:,.2f}")
+    
+    st.divider()
+    p_raw = st.session_state.db["OPERAÇÃO"][op_sel]
+    st.info(f"Monitor de Pausas Detalhado: P1: {p_raw['P1']} | P2: {p_raw['P2']} | Lanche: {p_raw['LANCHE']} | Banheiro: {p_raw['BANHEIRO']}")
 
 # --- ABA 03: DISCADOR (RESTAURADA) ---
 with aba3:
     st.header("🧠 Estratégia de Discador")
     st.metric("IPI (Padrão Ouro)", f"{st.session_state.db['DISCADOR']['PEN']}%")
-    st.write(f"Mailing em Uso: **{st.session_state.db['DISCADOR']['MAILING']}**")
+    st.info(f"Mailing Ativo: {st.session_state.db['DISCADOR']['MAILING']}")
 
 # --- ABA 04: TELEFONIA (RESTAURADA) ---
 with aba4:
-    st.header("📡 Infraestrutura de Telefonia")
-    st.error(f"Latência de Rede: {st.session_state.db['TELEFONIA']['LAT']}ms")
-    st.warning(f"Servidor: {st.session_state.db['TELEFONIA']['SERVER']}")
+    st.header("📡 Infraestrutura")
+    st.metric("Latência", f"{st.session_state.db['TELEFONIA']['LAT']}ms")
+    st.error(f"Status do Servidor: {st.session_state.db['TELEFONIA']['STATUS']}")
 
 # --- ABA 05: RELATÓRIOS ---
 with aba5:
-    st.header("📂 Central de Relatórios")
     csv = df_audit.to_csv(index=False).encode('utf-8-sig')
-    st.download_button("📥 BAIXAR RELATÓRIO V53", csv, "S_A_SPA_V53.csv", "text/csv")
+    st.download_button("📥 EXPORTAR V54", csv, "S_A_SPA_V54.csv", "text/csv")
 
 # --- ABA 06: JURÍDICO ---
 with aba6:
-    st.header("⚖️ Visão Jurídica")
     st.table(df_audit[["OPERADOR", "STATUS"]])
-    
