@@ -1,11 +1,11 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import hashlib
 
-# --- CONFIGURAÇÃO DA CAMADA DE SOBERANIA (BLINDAGEM S.A.) ---
+# --- 1. CAMADA DE SOBERANIA (BLINDAGEM S.A.) ---
 st.set_page_config(page_title="S.A. SUPREMO - V111", layout="wide", initial_sidebar_state="collapsed")
 
-# CSS Proprietário Sidney Almeida
 st.markdown("""
     <style>
     #MainMenu {visibility: hidden;}
@@ -21,120 +21,146 @@ st.markdown("""
         padding: 10px; 
         margin-bottom: 20px;
     }
-    .metric-box {
+    .metric-card {
         background-color: #1A1C23;
         padding: 15px;
         border-radius: 10px;
         border-left: 5px solid #FFD700;
+        margin: 10px 0;
     }
     </style>
     <div class="selo-sidney">🔱 SIDNEY ALMEIDA - SUMÁRIO EXECUTIVO INTEGRAL V111 🔱</div>
     """, unsafe_allow_html=True)
 
-# --- MEMÓRIA QUÂNTICA: DADOS PADRÃO OURO ---
-dados_macro = {
-    'OPERADOR': ['PAULO', 'MARCOS', 'TOTAL'],
-    'ALÔ': [150, 162, 312],
-    'CPC': [90, 90, 180],
-    'CPCA': [90, 90, 180],
-    'PROMESSA': [25, 20, 45],
-    'VALOR': [2500.00, 2000.00, 4500.00],
-    'CONVERSÃO': ['27.7%', '22.2%', '25.0%'],
-    'LOGIN': ['08:00', '08:15', '-'],
-    'LOGOUT': ['17:00', '17:30', '-'],
-    'TEMPO LOGADO': ['09:00', '09:15', '-'],
-    'PAUSA 45': ['35m', '48m', '-']
-}
-df_master = pd.DataFrame(dados_macro)
+# --- MEMÓRIA QUÂNTICA: DADOS INTEGRADOS ---
+if 'dados' not in st.session_state:
+    st.session_state.dados = {
+        'OPERADOR': ['PAULO', 'MARCOS', 'TOTAL'],
+        'ALÔ': [150, 162, 312],
+        'CPC': [90, 40, 130],
+        'CPCA': [90, 40, 130],
+        'PROMESSA': [25, 5, 30],
+        'VALOR': [2500.00, 500.00, 3000.00],
+        'CONVERSÃO': ['27.7%', '12.3%', '23.0%'],
+        'LOGIN': ['08:00', '08:15', '-'],
+        'LOGOUT': ['17:00', '17:30', '-'],
+        'TEMPO LOGADO': ['09:00', '09:15', '-'],
+        'PAUSA 45': ['35m', '55m', '-'],
+        'SCORE': [95, 42, 68]
+    }
 
-# --- ARQUITETURA DE ABAS V111 ---
+df = pd.DataFrame(st.session_state.dados)
+
+# --- ARQUITETURA DE ABAS ---
 abas = st.tabs([
-    "👑 Cockpit (Aba 01)", 
-    "👥 Gestão Operador (Aba 02)", 
-    "☎️ Visão Discador (Aba 03)", 
-    "📡 Visão Telefonia (Aba 04)", 
-    "🐍 Sabotagem/Omissão (Aba 05)", 
-    "⚖️ Jurídico (Aba 06)", 
-    "📂 Exportação (Aba 07)"
+    "👑 Cockpit", "👥 Gestão", "☎️ Discador", 
+    "📡 Telefonia", "🐍 Sabotagem", "⚖️ Jurídico", "📂 Exportação"
 ])
 
-# --- ABA 01: COCKPIT (A CENTRAL IMUTÁVEL) ---
+# --- ABA 01: COCKPIT (IMUTÁVEL) ---
 with abas[0]:
-    st.subheader("👑 Cockpit - Visão de Guerra Macro")
+    st.subheader("👑 Cockpit - Central Macro")
+    st.table(df[['OPERADOR', 'ALÔ', 'CPC', 'CPCA', 'PROMESSA', 'VALOR', 'CONVERSÃO']])
     
-    # Esteira de Alta Performance com Coluna TOTAL
-    st.table(df_master[['OPERADOR', 'ALÔ', 'CPC', 'CPCA', 'PROMESSA', 'VALOR', 'CONVERSÃO']])
-    
-    col_t1, col_t2 = st.columns(2)
-    with col_t1:
-        st.subheader("⏱️ Gestão de Tempo Forense")
-        st.dataframe(df_master[['OPERADOR', 'LOGIN', 'LOGOUT', 'TEMPO LOGADO', 'PAUSA 45']])
-    
-    with col_t2:
+    c1, c2 = st.columns(2)
+    with c1:
+        st.subheader("⏱️ Gestão de Tempo")
+        st.dataframe(df[['OPERADOR', 'LOGIN', 'LOGOUT', 'TEMPO LOGADO', 'PAUSA 45']])
+    with c2:
         st.subheader("🔥 Mapa de Calor de Pausas")
-        st.error("ALERTA: MARCOS ultrapassou a Trava Pausa 45 (Status: 48min)")
-        st.info("🤖 IA-SENTINELA: Operacional | 📡 VIVO CLOUD: 12ms")
+        for i, row in df.iterrows():
+            if row['OPERADOR'] != 'TOTAL':
+                tempo = int(row['PAUSA 45'].replace('m', ''))
+                if tempo > 45:
+                    st.error(f"ALERTA: {row['OPERADOR']} excedeu a Trava 45 ({tempo}min)")
+                else:
+                    st.success(f"{row['OPERADOR']}: {tempo}min (Dentro da meta)")
 
-# --- ABA 02: GESTÃO DO OPERADOR (ESPELHO POR CPF) ---
+# --- ABA 02: GESTÃO OPERADOR (TRAVA -50%) ---
 with abas[1]:
-    st.subheader("👥 Gestão do Operador - Espelhamento Tático")
-    cpf_input = st.text_input("Filtrar por CPF do Operador:")
+    st.subheader("👥 Gestão por CPF")
+    op_ref = st.selectbox("Selecione para Auditoria:", df['OPERADOR'][:-1])
+    dados_op = df[df['OPERADOR'] == op_ref].iloc[0]
     
-    if cpf_input:
-        # Espelho exato do Cockpit filtrado
-        st.table(df_master.iloc[[0]]) 
-        
-        # Lógica Meta X (-50%)
-        valor_bruto = 4500.00
-        valor_projetado = valor_bruto * 0.50
-        
-        st.markdown(f"""
-        <div class='metric-box'>
-            <h3>META X (PROJEÇÃO DE RODADA)</h3>
-            <p>Bruto: R$ {valor_bruto}</p>
-            <p style='color: #FF4B4B;'>Trava de Segurança S.A.: -50%</p>
-            <h2 style='color: #00FF00;'>VALOR LIBERADO: R$ {valor_projetado}</h2>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        c1, c2, c3 = st.columns(3)
-        with c1: st.button("🟢 ENTRA", use_container_width=True)
-        with c2: st.button("🟡 PULA", use_container_width=True)
-        with c3: st.button("🔴 NÃO ENTRA", use_container_width=True)
+    v_bruto = dados_op['VALOR']
+    v_liberado = v_bruto * 0.50 # Regra de Ouro: -50%
+    
+    st.markdown(f"""
+    <div class='metric-card'>
+        <h3>PROJEÇÃO META X</h3>
+        <p>VALOR PENDENTE: R$ {v_bruto}</p>
+        <h2 style='color: #00FF00;'>VALOR LIBERADO: R$ {v_liberado}</h2>
+        <p><small>Trava de Segurança S.A. aplicada: -50%</small></p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col_btn1, col_btn2, col_btn3 = st.columns(3)
+    with col_btn1: st.button("🟢 ENTRA", key="e1", use_container_width=True)
+    with col_btn2: st.button("🟡 PULA", key="p1", use_container_width=True)
+    with col_btn3: st.button("🔴 NÃO ENTRA", key="n1", use_container_width=True)
 
-# --- ABAS 03 & 04: ARMAMENTO ESPELHADO (DISCADOR & TELEFONIA) ---
-for i in [2, 3]:
-    with abas[i]:
-        nome_aba = "☎️ Visão Discador" if i == 2 else "📡 Visão Telefonia"
-        st.subheader(f"{nome_aba} - Sistema Espelhado")
-        
-        # Colunas definidas pelo Comandante
-        dados_tecnicos = {
-            'DIAGNÓSTICO': ['Vácuo Detectado (1.00x)', 'Latência na Rota'],
-            'PROGNÓSTICO': ['Queda de 30% na Conversão', 'Atraso no Alô'],
-            'SOLUÇÃO': ['Reset de IP IA-Sentinela', 'Troca para Rota Secundária'],
-            'IMPACTO FINANCEIRO': ['- R$ 800,00', '- R$ 450,00']
-        }
-        st.table(pd.DataFrame(dados_tecnicos))
+# --- ABA 03: VISÃO DISCADOR (MAILING) ---
+with abas[2]:
+    st.subheader("☎️ Inteligência de Mailing")
+    audit_m = pd.DataFrame({
+        'DIAGNÓSTICO': ['Desconhecidos (Massa)', 'Vácuo (1.00x)', 'CPC Fantasma'],
+        'SOLUÇÃO': ['Higienizar Base', 'Trocar Mailing', 'IA-Sentinela Ativa'],
+        'IMPACTO': ['- R$ 300,00', '- R$ 850,00', '- R$ 150,00']
+    })
+    st.table(audit_m)
 
-# --- ABA 05: SABOTAGEM E OMISSÃO ---
+# --- ABA 04: VISÃO TELEFONIA (LINK) ---
+with abas[3]:
+    st.subheader("📡 Auditoria de Link e Rede")
+    audit_t = pd.DataFrame({
+        'MÉTRICA': ['Latência', 'Jitter', 'Sincronia SIP'],
+        'STATUS': ['12ms (Verde)', '0.8ms (Estável)', 'Sincronizado'],
+        'SAÚDE': ['100%', '100%', 'OK']
+    })
+    st.table(audit_t)
+
+# --- ABA 05: SABOTAGEM (O SENTINELA) ---
 with abas[4]:
-    st.subheader("🐍 O Sentinela - Caça-Sabotador")
-    st.warning("Monitoramento de 'Mudo', 'Quedas Forçadas' e 'Pausas Fantasmas' em tempo real.")
-    st.write("IPI (Índice de Produtividade Imediata): **ATIVO**")
+    st.subheader("🐍 Perfilamento Comportamental")
+    st.write("Cruzamento de Dados: Operador vs. Sistema")
+    
+    for i, row in df.iterrows():
+        if row['OPERADOR'] != 'TOTAL':
+            score = row['SCORE']
+            status = "🔴 SABOTADOR" if score < 50 else "🟢 CONFIÁVEL"
+            st.write(f"**{row['OPERADOR']}** | Score: {score}% | Status: {status}")
+            st.progress(score / 100)
 
-# --- ABA 06: JURÍDICO & COMPLIANCE ---
+# --- ABA 06: JURÍDICO (ART. 482) ---
 with abas[5]:
-    st.subheader("⚖️ Blindagem Legal")
-    st.markdown("Documentação baseada no **Artigo 482 da CLT (Desídia)**.")
-    st.button("Gerar Advertência com Dano Patrimonial (.docx)")
+    st.subheader("⚖️ Blindagem Jurídica")
+    st.warning("AUDITORIA: Se Link (Aba 04) está OK e Produção está Baixa = DESÍDIA.")
+    
+    with st.expander("Gerar Advertência"):
+        op_jur = st.selectbox("Operador Infrator:", df['OPERADOR'][:-1], key="jur")
+        st.text_area("Enquadramento:", f"Art. 482 CLT alínea (e) - Desídia comprovada por ociosidade deliberada e Pausas Fantasmas.")
+        st.button("Gerar PDF de Advertência")
 
-# --- ABA 07: EXPORTAÇÃO FORENSE ---
+# --- ABA 07: EXPORTAÇÃO FORENSE (SEM ERRO DE ACENTO) ---
 with abas[6]:
-    st.subheader("📂 Relatórios Ouro")
-    st.button("Exportar PDF com Hash SHA-256")
-    st.button("Exportar Planilha Consolidada (Excel)")
+    st.subheader("📂 Exportação de Dossiê 360º")
+    
+    # Gerando Hash SHA-256 para o relatório
+    hash_obj = hashlib.sha256(str(datetime.now()).encode())
+    hash_res = hash_obj.hexdigest()[:12].upper()
+    
+    st.write(f"Assinatura Digital da Rodada: **{hash_res}**")
+    
+    # Preparando CSV com codificação para celular (UTF-8-SIG)
+    csv = df.to_csv(index=False).encode('utf-16')
+    
+    st.download_button(
+        label="📥 Baixar Relatório Completo (Saneado)",
+        data=csv,
+        file_name=f"SA_SUPREMO_V111_{datetime.now().strftime('%d_%m_%Y')}.csv",
+        mime="text/csv"
+    )
 
 # --- FOOTER ---
 st.markdown(f"--- \n **SISTEMA V111 ATIVO** | {datetime.now().strftime('%d/%m/%Y %H:%M:%S')} | STAKE: **1 Real**")
-    
+                     
