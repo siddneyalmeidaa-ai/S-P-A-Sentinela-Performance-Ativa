@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
 
-# --- 1. SOBERANIA S.A. (CONFIGURAÇÃO VISUAL) ---
+# --- 1. SOBERANIA S.A. (ESTILO) ---
 st.set_page_config(page_title="S.A. SUPREMO - V111", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown("""
@@ -23,56 +22,69 @@ st.markdown("""
     <div class="selo-sidney">🔱 SIDNEY ALMEIDA - DASHBOARD SUPREMO V111 🔱</div>
     """, unsafe_allow_html=True)
 
-# --- 2. CRIAÇÃO SEGURA DOS DADOS (BLOQUEIO DE KEYERROR) ---
-# Garantindo que todas as colunas necessárias existam na inicialização
-df_base = pd.DataFrame({
-    'OPERADOR': ['PAULO', 'MARCOS', 'JESSICA'],
-    'ALÔ': [150, 162, 100],
-    'CPC': [90, 40, 50],
-    'PROMESSA': [25, 5, 10],
-    'VALOR': [2500.00, 500.00, 1200.00],
-    'PAUSA_MIN': [35, 55, 40],
-    'LOGADO_MIN': [540, 555, 530]
-})
+# --- 2. DADOS (MEMÓRIA QUÂNTICA) ---
+if 'dados_v111' not in st.session_state:
+    st.session_state.dados_v111 = pd.DataFrame({
+        'OPERADOR': ['PAULO', 'MARCOS', 'JESSICA'],
+        'ALÔ': [150, 162, 100],
+        'CPC': [90, 40, 50],
+        'PROMESSA': [25, 5, 10],
+        'VALOR': [2500.00, 500.00, 1200.00],
+        'PAUSA_MIN': [35, 55, 40],
+        'LOGADO_MIN': [540, 555, 530]
+    })
 
-# CÁLCULOS TOTAIS
-total_valor = df_base['VALOR'].sum()
-total_promessas = df_base['PROMESSA'].sum()
-total_cpc = df_base['CPC'].sum()
+df = st.session_state.dados_v111
 
-# CORREÇÃO DA FÓRMULA: PROMESSA / CPC
-conversao_final = (total_promessas / total_cpc) * 100 if total_cpc > 0 else 0
-
-# --- 3. ARQUITETURA DE ABAS ---
+# --- 3. INTERFACE DE ABAS ---
 abas = st.tabs(["👑 Cockpit", "👥 Gestão", "☎️ Discador", "📡 Telefonia", "🐍 Sabotagem", "📂 Exportação"])
 
-# --- ABA 01: COCKPIT (SUMÁRIO EXECUTIVO) ---
+# --- ABA 01: COCKPIT (SUMÁRIO) ---
 with abas[0]:
-    col1, col2, col3 = st.columns(3)
-    with col1:
+    total_valor = df['VALOR'].sum()
+    total_promessas = df['PROMESSA'].sum()
+    total_cpc = df['CPC'].sum()
+    conversao = (total_promessas / total_cpc) * 100 if total_cpc > 0 else 0
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
         st.markdown(f"<div class='metric-card'><h3>VALOR TOTAL</h3><h2>R$ {total_valor:,.2f}</h2></div>", unsafe_allow_html=True)
-    with col2:
+    with c2:
         st.markdown(f"<div class='metric-card'><h3>PRODUTIVIDADE</h3><h2>{total_promessas}</h2></div>", unsafe_allow_html=True)
-    with col3:
-        st.markdown(f"<div class='metric-card'><h3>CONVERSÃO</h3><h2>{conversao_final:.1f}%</h2></div>", unsafe_allow_html=True)
+    with c3:
+        st.markdown(f"<div class='metric-card'><h3>CONVERSÃO</h3><h2>{conversao:.1f}%</h2></div>", unsafe_allow_html=True)
     
     st.divider()
-    
-    # Médias exibidas de forma simples para evitar erro visual
-    m_pau = int(df_base['PAUSA_MIN'].mean())
-    m_log = int(df_base['LOGADO_MIN'].mean())
-    st.write(f"**Tempo Logado Médio:** {m_log // 60}h {m_log % 60}min")
-    st.write(f"**Média de Pausa:** {m_pau} min")
-    if m_pau > 45: st.error("⚠️ Alerta: Média de Pausa Excedida")
+    st.write(f"**Média de Pausa:** {int(df['PAUSA_MIN'].mean())} min")
 
-# --- ABA 02: GESTÃO (OPERADORES RECUPERADOS) ---
+# --- ABA 02: GESTÃO (COM FILTRO POR OPERADOR) ---
 with abas[1]:
-    st.subheader("👥 Performance Detalhada")
-    st.table(df_base) # Força a exibição da tabela completa
+    st.subheader("👥 Gestão de Operadores")
+    
+    # CRIAÇÃO DO FILTRO
+    lista_operadores = ["TODOS"] + sorted(df['OPERADOR'].unique().tolist())
+    operador_selecionado = st.selectbox("🔍 Buscar por Operador:", lista_operadores)
+    
+    # APLICAÇÃO DO FILTRO
+    if operador_selecionado == "TODOS":
+        df_filtrado = df
+    else:
+        df_filtrado = df[df['OPERADOR'] == operador_selecionado]
+    
+    # EXIBIÇÃO DA TABELA FILTRADA
+    st.table(df_filtrado)
+    
+    # Alerta de Pausa específico para o selecionado
+    if operador_selecionado != "TODOS":
+        pausa = df_filtrado['PAUSA_MIN'].values[0]
+        if pausa > 45:
+            st.error(f"🚨 {operador_selecionado} está acima da meta de pausa ({pausa} min)!")
+        else:
+            st.success(f"✅ {operador_selecionado} está dentro da meta ({pausa} min).")
 
-# --- ABAS TÉCNICAS (DIAGNÓSTICO E SOLUÇÃO) ---
+# --- ABAS TÉCNICAS ---
 with abas[2]: # Discador
-    st.table(pd.DataFrame({'DIAGNÓSTICO': ['Vácuo 1.00x'], 'SOLUÇÃO': ['Reiniciar IA-Sentinela']}))
+    st.table(pd.DataFrame({'DIAGNÓSTICO': ['Vácuo 1.00x'], 'SOLUÇÃO': ['Reset IA-Sentinela']}))
 
 with abas[3]: # Telefonia
     st.table(pd.DataFrame({'DIAGNÓSTICO': ['Latência Alta'], 'SOLUÇÃO': ['Reset Rota SIP']}))
