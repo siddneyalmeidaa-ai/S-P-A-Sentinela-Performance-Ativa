@@ -11,18 +11,19 @@ st.markdown("""
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
     .stApp {background-color: #0E1117; color: #FFFFFF;}
     .selo-sidney {
-        text-align: center; color: #FFD700; font-size: 28px; font-weight: bold; 
-        border-bottom: 2px solid #FFD700; padding: 10px; margin-bottom: 25px;
+        text-align: center; color: #FFD700; font-size: 32px; font-weight: bold; 
+        border-bottom: 3px solid #FFD700; padding: 15px; margin-bottom: 30px;
     }
     .metric-card {
-        background-color: #1A1C23; padding: 25px; border-radius: 12px;
-        border-left: 6px solid #FFD700; margin: 10px 0;
+        background-color: #1A1C23; padding: 30px; border-radius: 15px;
+        border-left: 8px solid #FFD700; margin: 15px 0;
+        box-shadow: 5px 5px 15px rgba(0,0,0,0.5);
     }
-    .metric-card h3 { font-size: 20px; color: #FFD700; margin-bottom: 5px; }
-    .metric-card h2 { font-size: 45px; font-weight: bold; margin: 0; }
-    .metric-card p { font-size: 16px; color: #AAAAAA; margin-top: 5px; }
+    .metric-card h3 { font-size: 22px; color: #FFD700; margin-bottom: 10px; text-transform: uppercase; }
+    .metric-card h2 { font-size: 55px; font-weight: bold; margin: 0; color: #FFFFFF; }
+    .metric-card p { font-size: 18px; color: #AAAAAA; margin-top: 10px; }
     </style>
-    <div class="selo-sidney">🔱 SIDNEY ALMEIDA - SUMÁRIO EXECUTIVO INTEGRAL V111 🔱</div>
+    <div class="selo-sidney">🔱 SIDNEY ALMEIDA - DASHBOARD SUPREMO V111 🔱</div>
     """, unsafe_allow_html=True)
 
 # --- 2. MEMÓRIA QUÂNTICA: DADOS ---
@@ -47,8 +48,8 @@ total_cpca = df['CPCA'].sum()
 total_alo = df['ALÔ'].sum()
 total_cpc = df['CPC'].sum()
 
-# NOVA FÓRMULA: PROMESSA / CPCA
-conversao_ajustada = (total_promessas / total_cpca) * 100 if total_cpca > 0 else 0
+# CÁLCULO DA CONVERSÃO (Promessa / CPCA)
+conversao = (total_promessas / total_cpca) * 100 if total_cpca > 0 else 0
 
 # MÉDIAS CONSOLIDADAS
 media_tempo_min = df['TEMPO_LOGADO_MIN'].mean()
@@ -57,58 +58,67 @@ media_pausa_min = df['PAUSA_MINUTOS'].mean()
 # --- 3. ARQUITETURA DE ABAS ---
 abas = st.tabs(["👑 Cockpit", "👥 Gestão", "☎️ Discador", "📡 Telefonia", "🐍 Sabotagem", "⚖️ Jurídico", "📂 Exportação"])
 
-# --- ABA 01: COCKPIT (CORRIGIDO E RESUMIDO) ---
+# --- ABA 01: COCKPIT (INTERFACE REFORMULADA) ---
 with abas[0]:
-    st.subheader("👑 Cockpit - Sumário Executivo")
-    
-    # LINHA 1: VALOR E PROMESSAS
+    # LINHA 1: PODER FINANCEIRO E PROVAS
     c1, c2 = st.columns(2)
     with c1:
         st.markdown(f"""<div class='metric-card'>
-            <h3>TOTAL DE VALOR</h3><h2>R$ {total_valor:.2f}</h2>
-            <p>Meta X: R$ {total_valor * 0.5:.2f}</p>
+            <h3>TOTAL DE VALOR</h3><h2>R$ {total_valor:,.2f}</h2>
+            <p>Meta X (Liberado): R$ {total_valor * 0.5:,.2f}</p>
         </div>""", unsafe_allow_html=True)
     with c2:
         st.markdown(f"""<div class='metric-card'>
             <h3>TOTAL DE PROMESSAS</h3><h2>{total_promessas}</h2>
-            <p>Volume de Prova</p>
+            <p>Volume de Prova Acumulado</p>
         </div>""", unsafe_allow_html=True)
     
-    # LINHA 2: CONVERSÃO E VOLUMES
+    # LINHA 2: CONVERSÃO E PERFORMANCE TÉCNICA
     c3, c4 = st.columns(2)
     with c3:
         st.markdown(f"""<div class='metric-card'>
-            <h3>CONVERSÃO</h3><h2>{conversao_ajustada:.1f}%</h2>
-            <p>(Promessa / CPCA)</p>
+            <h3>CONVERSÃO</h3><h2>{conversao:.1f}%</h2>
+            <p>Fórmula: Promessa / CPCA</p>
         </div>""", unsafe_allow_html=True)
     with c4:
         st.markdown(f"""<div class='metric-card'>
             <h3>VOLUME DE PROVA (ALÔ/CPC)</h3><h2>{total_alo} / {total_cpc}</h2>
-            <p>Sincronismo de Base</p>
+            <p>Sincronismo de Base e Mailing</p>
         </div>""", unsafe_allow_html=True)
 
     st.divider()
     
-    # MÉDIAS CONSOLIDADAS
-    col_m1, col_m2 = st.columns(2)
-    with col_m1:
-        st.write(f"**Média Tempo Logado Consolidado:** {int(media_tempo_min // 60)}h {int(media_tempo_min % 60)}min")
-    with col_m2:
-        st.write(f"**Média Pausa Consolidada:** {int(media_pausa_min)} min")
-        if media_pausa_min > 45: st.error("⚠️ MÉDIA DE PAUSA EXCEDIDA")
+    # LINHA 3: MÉDIAS CONSOLIDADAS (O QUE ESTAVA FALTANDO)
+    m1, m2, m3 = st.columns(3)
+    with m1:
+        st.info(f"**Média Tempo Logado:** {int(media_tempo_min // 60)}h {int(media_tempo_min % 60)}min")
+    with m2:
+        if media_pausa_min > 45:
+            st.error(f"**Média Pausa Consolidada:** {int(media_pausa_min)} min (EXCEDIDO)")
+        else:
+            st.success(f"**Média Pausa Consolidada:** {int(media_pausa_min)} min")
+    with m3:
+        st.warning(f"**Status Técnico:** Link VIVO 12ms | Vácuo 12%")
 
-# --- ABA 03/04: DIAGNÓSTICO DETALHADO ---
-with abas[2]: # Discador
-    st.subheader("☎️ Discador: Diagnóstico / Prognóstico / Solução")
-    st.table(pd.DataFrame({
-        'DIAGNÓSTICO': ['Vácuo 1.00x'], 'PROGNÓSTICO': ['Perda de Meta'], 'SOLUÇÃO': ['Reset IA-Sentinela']
-    }))
+# --- ABA 03: VISÃO DISCADOR (DETALHADO) ---
+with abas[2]:
+    st.subheader("☎️ Discador - Diagnóstico Técnico")
+    diag_disc = pd.DataFrame({
+        'DIAGNÓSTICO': ['Vácuo Detectado (1.00x)', 'Mailing Saturado'],
+        'PROGNÓSTICO': ['Queda de 20% na Conversão', 'Aumento de Pausas'],
+        'SOLUÇÃO': ['Reset IA-Sentinela', 'Trocar Base Imediato']
+    })
+    st.table(diag_disc)
 
-with abas[3]: # Telefonia
-    st.subheader("📡 Telefonia: Diagnóstico / Prognóstico / Solução")
-    st.table(pd.DataFrame({
-        'DIAGNÓSTICO': ['Latência Alta'], 'PROGNÓSTICO': ['Delay Voz'], 'SOLUÇÃO': ['Reiniciar Rota']
-    }))
+# --- ABA 04: VISÃO TELEFONIA (DETALHADO) ---
+with abas[3]:
+    st.subheader("📡 Telefonia - Auditoria de Link")
+    diag_tel = pd.DataFrame({
+        'DIAGNÓSTICO': ['Latência Oscilante', 'Jitter em 0.8ms'],
+        'PROGNÓSTICO': ['Voz Robótica/Delay', 'Queda de Chamadas'],
+        'SOLUÇÃO': ['Reiniciar Rota SIP', 'Check QoS Roteador']
+    })
+    st.table(diag_tel)
 
 # --- FOOTER ---
-st.markdown(f"--- \n **SISTEMA V111 ATIVO** | STAKE: **1 Real**")
+st.markdown(f"--- \n **SISTEMA V111 ATIVO** | {datetime.now().strftime('%H:%M')} | STAKE: **1 Real**")
