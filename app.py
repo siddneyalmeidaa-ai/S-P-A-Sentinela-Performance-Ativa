@@ -12,7 +12,6 @@ st.markdown("""
         text-align: center; color: #FFD700; font-size: 20px; font-weight: bold; 
         border-bottom: 2px solid #FFD700; padding: 10px; margin-bottom: 15px;
     }
-    /* PADRÃO DE CARDS SUPREMO */
     .card-sa {
         background-color: #1A1C23; padding: 20px; border-radius: 12px;
         border: 1px solid #333; margin-bottom: 15px; border-left: 6px solid #FFD700;
@@ -57,6 +56,12 @@ with abas[0]:
     with c2:
         st.markdown(f'<div class="card-sa"><div class="titulo-card">📈 Conversão</div><div class="valor-card">{conv_geral:.1f}%</div><div class="sub-card">Média do Time</div></div>', unsafe_allow_html=True)
 
+    c3, c4 = st.columns(2)
+    with c3:
+        st.markdown(f'<div class="card-sa"><div class="titulo-card">🤝 Promessas</div><div class="valor-card">{total_p}</div><div class="sub-card">Volume de Prova</div></div>', unsafe_allow_html=True)
+    with c4:
+        st.markdown(f'<div class="card-sa"><div class="titulo-card">⏱️ Média de Pausa</div><div class="valor-card">{int(df["PAUSA_MIN"].mean())} min</div><div class="sub-card">Teto: 45 min</div></div>', unsafe_allow_html=True)
+
 # --- ABA 02: GESTÃO VISUAL ---
 with abas[1]:
     for _, row in df.iterrows():
@@ -64,6 +69,24 @@ with abas[1]:
         status = f"<span style='color:#FF4B4B;'>🚨 ALERTA</span>" if row['PAUSA_MIN'] > 45 else f"<span style='color:#00FF00;'>✅ OK</span>"
         st.markdown(f"""
         <div class="card-operador">
-            <div style="color:#FFD700; font-weight:bold;">👤 {row['OPERADOR']}</div>
-            <div style="display:flex; justify-content:space-between; margin-top:5px;
-    
+            <div style="color:#FFD700; font-weight:bold; font-size:16px;">👤 {row['OPERADOR']}</div>
+            <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:13px;">
+                <span>VALOR: R$ {row['VALOR']:,.2f}</span>
+                <span>CONV: {c_ind:.1f}%</span>
+                <span>PAUSA: {row['PAUSA_MIN']}min {status}</span>
+            </div>
+        </div>""", unsafe_allow_html=True)
+
+# --- ABA 03: DISCADOR (CARDS) ---
+with abas[2]:
+    st.markdown('<div class="card-sa"><div class="titulo-card">🔍 IA-SENTINELA</div><div class="valor-card">Vácuo (1.00x)</div><div class="sub-card">Monitorando Zonas Mortas</div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-sa"><div class="titulo-card">🛠️ Ação Corretiva</div><div class="valor-card">Reiniciar Discador</div><div class="sub-card">Motivo: Mailing Saturado</div></div>', unsafe_allow_html=True)
+
+# --- ABA 04: TELEFONIA (CARDS) ---
+with abas[3]:
+    st.markdown('<div class="card-sa"><div class="titulo-card">📡 Latência de Rede</div><div class="valor-card">45ms</div><div class="sub-card">Estabilidade: Verde</div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-sa"><div class="titulo-card">📞 Qualidade SIP</div><div class="valor-card">98.5%</div><div class="sub-card">Áudio Cristalino</div></div>', unsafe_allow_html=True)
+
+# --- FOOTER ---
+st.markdown(f"--- \n **SISTEMA V111 ATIVO | STAKE: 1 Real**")
+        
