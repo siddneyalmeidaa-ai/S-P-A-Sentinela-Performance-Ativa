@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-# --- 1. SOBERANIA S.A. (ESTILO INTEGRAL) ---
+# --- 1. SOBERANIA S.A. (ESTILO) ---
 st.set_page_config(page_title="S.A. SUPREMO - V111", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown("""
@@ -15,87 +15,103 @@ st.markdown("""
     .card-sa {
         background-color: #1A1C23; padding: 20px; border-radius: 12px;
         border: 1px solid #333; margin-bottom: 15px; border-left: 6px solid #FFD700;
-        text-align: center;
     }
     .titulo-card { color: #FFD700; font-size: 14px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
     .valor-card { font-size: 28px; font-weight: bold; color: #FFFFFF; }
-    .sub-card { color: #AAAAAA; font-size: 11px; margin-top: 5px; }
+    .detalhe-tecnico { font-size: 13px; color: #AAAAAA; margin-top: 5px; line-height: 1.4; }
     
     .card-operador {
         background-color: #1A1C23; padding: 15px; border-radius: 12px;
         border: 1px solid #333; margin-bottom: 10px; border-left: 6px solid #FFD700;
     }
-    .nome-op { color: #FFD700; font-weight: bold; font-size: 16px; text-transform: uppercase; }
-    .grid-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; font-size: 13px; }
-    .m-label { color: #AAAAAA; }
-    .m-val { color: #FFFFFF; font-weight: bold; }
+    .grid-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; font-size: 12px; }
     </style>
     <div class="selo-sidney">🔱 SIDNEY ALMEIDA - DASHBOARD SUPREMO V111 🔱</div>
     """, unsafe_allow_html=True)
 
-# --- 2. DADOS (PADRÃO OURO) ---
+# --- 2. DADOS ---
 df = pd.DataFrame({
     'OPERADOR': ['PAULO', 'MARCOS', 'JESSICA'],
     'ALÔ': [150, 162, 100],
     'CPC': [90, 40, 50],
     'PROMESSA': [25, 5, 10],
     'VALOR': [2500.00, 500.00, 1200.00],
-    'PAUSA_MIN': [35, 55, 40],
-    'LOGADO_MIN': [540, 555, 530]
+    'PAUSA_MIN': [35, 55, 40]
 })
 
-# --- 3. ABAS UNIFICADAS ---
+# --- 3. ABAS ---
 abas = st.tabs(["👑 Cockpit", "👥 Gestão Visual", "☎️ Discador", "📡 Telefonia"])
 
 # --- ABA 01: COCKPIT ---
 with abas[0]:
-    total_v = df['VALOR'].sum()
-    total_p = df['PROMESSA'].sum()
-    total_c = df['CPC'].sum()
-    conv_geral = (total_p / total_c) * 100 if total_c > 0 else 0
-    
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown(f'<div class="card-sa"><div class="titulo-card">💰 Valor Total</div><div class="valor-card">R$ {total_v:,.2f}</div><div class="sub-card">Meta Liberada: 50%</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="card-sa"><div class="titulo-card">💰 Faturamento</div><div class="valor-card">R$ {df["VALOR"].sum():,.2f}</div></div>', unsafe_allow_html=True)
     with c2:
-        st.markdown(f'<div class="card-sa"><div class="titulo-card">📈 Conversão</div><div class="valor-card">{conv_geral:.1f}%</div><div class="sub-card">Promessa / CPC</div></div>', unsafe_allow_html=True)
+        conv = (df['PROMESSA'].sum() / df['CPC'].sum()) * 100
+        st.markdown(f'<div class="card-sa"><div class="titulo-card">📈 Conversão</div><div class="valor-card">{conv:.1f}%</div></div>', unsafe_allow_html=True)
 
-    c3, c4 = st.columns(2)
-    with c3:
-        st.markdown(f'<div class="card-sa"><div class="titulo-card">🤝 Promessas</div><div class="valor-card">{total_p}</div><div class="sub-card">Volume de Prova</div></div>', unsafe_allow_html=True)
-    with c4:
-        st.markdown(f'<div class="card-sa"><div class="titulo-card">⏱️ Média de Pausa</div><div class="valor-card">{int(df["PAUSA_MIN"].mean())} min</div><div class="sub-card">Teto: 45 min</div></div>', unsafe_allow_html=True)
-
-# --- ABA 02: GESTÃO VISUAL (DETALHADA) ---
+# --- ABA 02: GESTÃO VISUAL ---
 with abas[1]:
     for _, row in df.iterrows():
-        c_ind = (row['PROMESSA'] / row['CPC']) * 100 if row['CPC'] > 0 else 0
-        status = f"<span style='color:#FF4B4B;'>🚨 ALERTA</span>" if row['PAUSA_MIN'] > 45 else f"<span style='color:#00FF00;'>✅ OK</span>"
-        
+        status = "🚨 ALERTA" if row['PAUSA_MIN'] > 45 else "✅ OK"
         st.markdown(f"""
         <div class="card-operador">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div class="nome-op">👤 {row['OPERADOR']}</div>
-                <div>{status}</div>
-            </div>
+            <div style="color:#FFD700; font-weight:bold;">👤 {row['OPERADOR']} | {status}</div>
             <div class="grid-metrics">
-                <div><span class="m-label">VALOR:</span> <span class="m-val">R$ {row['VALOR']:,.2f}</span></div>
-                <div><span class="m-label">CONV:</span> <span class="m-val">{c_ind:.1f}%</span></div>
-                <div><span class="m-label">ALÔ:</span> <span class="m-val">{row['ALÔ']}</span></div>
-                <div><span class="m-label">CPC/CPCA:</span> <span class="m-val">{row['CPC']}</span></div>
-                <div><span class="m-label">PROMESSAS:</span> <span class="m-val">{row['PROMESSA']}</span></div>
-                <div><span class="m-label">PAUSA:</span> <span class="m-val">{row['PAUSA_MIN']} min</span></div>
+                <div>VALOR: R$ {row['VALOR']:,.2f}</div>
+                <div>ALÔ: {row['ALÔ']}</div>
+                <div>CPC: {row['CPC']}</div>
+                <div>PROMESSAS: {row['PROMESSA']}</div>
+                <div>PAUSA: {row['PAUSA_MIN']} min</div>
             </div>
         </div>""", unsafe_allow_html=True)
 
-# --- ABA 03: DISCADOR (CARDS) ---
+# --- ABA 03: DISCADOR (DETALHAMENTO PESADO) ---
 with abas[2]:
-    st.markdown('<div class="card-sa"><div class="titulo-card">🔍 IA-SENTINELA</div><div class="valor-card">Vácuo (1.00x)</div><div class="sub-card">Zonas Mortas Detectadas</div></div>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="card-sa">
+        <div class="titulo-card">🔍 IA-SENTINELA: Diagnóstico de Vácuo</div>
+        <div class="valor-card" style="color:#FF4B4B;">Vácuo Detectado (1.00x)</div>
+        <div class="detalhe-tecnico">
+            • <b>Causa Provável:</b> Mailing Saturado (Tentativas > 5)<br>
+            • <b>Efeito:</b> Ocupação de linha sem conversão em ALÔ<br>
+            • <b>Sugestão:</b> Reciclar base de dados ou aumentar o Ratio para 1:5
+        </div>
+    </div>
+    <div class="card-sa">
+        <div class="titulo-card">📊 Saúde do Mailing</div>
+        <div class="valor-card">32%</div>
+        <div class="detalhe-tecnico">
+            • <b>Total Carregado:</b> 5.400 leads<br>
+            • <b>Leads Virgens:</b> 120<br>
+            • <b>Taxa de Atendimento:</b> 12% (Abaixo da média)
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-# --- ABA 04: TELEFONIA (CARDS) ---
+# --- ABA 04: TELEFONIA (DETALHAMENTO TÉCNICO) ---
 with abas[3]:
-    st.markdown('<div class="card-sa"><div class="titulo-card">📡 Rede</div><div class="valor-card">45ms</div><div class="sub-card">Estabilidade SIP: 98.5%</div></div>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="card-sa">
+        <div class="titulo-card">📡 Estabilidade da Rota SIP</div>
+        <div class="valor-card">Instável</div>
+        <div class="detalhe-tecnico">
+            • <b>Jitter:</b> 15ms (Oscilação detectada)<br>
+            • <b>Perda de Pacotes:</b> 0.5%<br>
+            • <b>Latência:</b> 85ms (Risco de voz robotizada)
+        </div>
+    </div>
+    <div class="card-sa">
+        <div class="titulo-card">📞 Troncos Ativos</div>
+        <div class="valor-card">24 / 30</div>
+        <div class="detalhe-tecnico">
+            • <b>Canais em Uso:</b> 24 canais<br>
+            • <b>Canais com Erro:</b> 6 canais (Timeout)
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 # --- FOOTER ---
 st.markdown(f"--- \n **SISTEMA V111 ATIVO | STAKE: 1 Real**")
-    
+        
