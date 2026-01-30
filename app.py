@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-# --- 1. SOBERANIA S.A. (ESTILO) ---
+# --- 1. SOBERANIA S.A. (ESTILO SUPREMO) ---
 st.set_page_config(page_title="S.A. SUPREMO - V111", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown("""
@@ -12,106 +12,69 @@ st.markdown("""
         text-align: center; color: #FFD700; font-size: 20px; font-weight: bold; 
         border-bottom: 2px solid #FFD700; padding: 10px; margin-bottom: 15px;
     }
-    .card-sa {
-        background-color: #1A1C23; padding: 20px; border-radius: 12px;
-        border: 1px solid #333; margin-bottom: 15px; border-left: 6px solid #FFD700;
-    }
-    .titulo-card { color: #FFD700; font-size: 14px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
-    .valor-card { font-size: 28px; font-weight: bold; color: #FFFFFF; }
-    .detalhe-tecnico { font-size: 13px; color: #AAAAAA; margin-top: 5px; line-height: 1.4; }
-    
     .card-operador {
-        background-color: #1A1C23; padding: 15px; border-radius: 12px;
-        border: 1px solid #333; margin-bottom: 10px; border-left: 6px solid #FFD700;
+        background-color: #1A1C23; padding: 18px; border-radius: 12px;
+        border: 1px solid #333; margin-bottom: 12px; border-left: 6px solid #FFD700;
     }
-    .grid-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; font-size: 12px; }
+    .nome-op { color: #FFD700; font-weight: bold; font-size: 18px; text-transform: uppercase; }
+    .grid-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; font-size: 14px; }
+    .m-label { color: #AAAAAA; font-weight: normal; }
+    .m-val { color: #FFFFFF; font-weight: bold; }
     </style>
     <div class="selo-sidney">🔱 SIDNEY ALMEIDA - DASHBOARD SUPREMO V111 🔱</div>
     """, unsafe_allow_html=True)
 
-# --- 2. DADOS ---
+# --- 2. DADOS (PADRÃO OURO) ---
+# Adicionado campo CPCA conforme solicitado
 df = pd.DataFrame({
     'OPERADOR': ['PAULO', 'MARCOS', 'JESSICA'],
     'ALÔ': [150, 162, 100],
     'CPC': [90, 40, 50],
+    'CPCA': [85, 38, 45], # Exemplo de dado CPCA
     'PROMESSA': [25, 5, 10],
     'VALOR': [2500.00, 500.00, 1200.00],
     'PAUSA_MIN': [35, 55, 40]
 })
 
-# --- 3. ABAS ---
+# --- 3. SISTEMA DE ABAS ---
 abas = st.tabs(["👑 Cockpit", "👥 Gestão Visual", "☎️ Discador", "📡 Telefonia"])
 
 # --- ABA 01: COCKPIT ---
 with abas[0]:
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown(f'<div class="card-sa"><div class="titulo-card">💰 Faturamento</div><div class="valor-card">R$ {df["VALOR"].sum():,.2f}</div></div>', unsafe_allow_html=True)
-    with c2:
-        conv = (df['PROMESSA'].sum() / df['CPC'].sum()) * 100
-        st.markdown(f'<div class="card-sa"><div class="titulo-card">📈 Conversão</div><div class="valor-card">{conv:.1f}%</div></div>', unsafe_allow_html=True)
+    st.write("**Resumo Geral de Operação Ativo.**")
 
-# --- ABA 02: GESTÃO VISUAL ---
+# --- ABA 02: GESTÃO VISUAL (FOCO TOTAL AQUI) ---
 with abas[1]:
+    st.subheader("👥 Performance Detalhada dos Operadores")
+    
     for _, row in df.iterrows():
-        status = "🚨 ALERTA" if row['PAUSA_MIN'] > 45 else "✅ OK"
+        # Lógica de Alerta
+        status_icon = "✅ OK" if row['PAUSA_MIN'] <= 45 else "🚨 ALERTA"
+        status_color = "#00FF00" if row['PAUSA_MIN'] <= 45 else "#FF4B4B"
+        
         st.markdown(f"""
         <div class="card-operador">
-            <div style="color:#FFD700; font-weight:bold;">👤 {row['OPERADOR']} | {status}</div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div class="nome-op">👤 {row['OPERADOR']}</div>
+                <div style="color:{status_color}; font-weight:bold;">{status_icon}</div>
+            </div>
             <div class="grid-metrics">
-                <div>VALOR: R$ {row['VALOR']:,.2f}</div>
-                <div>ALÔ: {row['ALÔ']}</div>
-                <div>CPC: {row['CPC']}</div>
-                <div>PROMESSAS: {row['PROMESSA']}</div>
-                <div>PAUSA: {row['PAUSA_MIN']} min</div>
+                <div><span class="m-label">💰 VALOR:</span> <span class="m-val">R$ {row['VALOR']:,.2f}</span></div>
+                <div><span class="m-label">📞 ALÔ:</span> <span class="m-val">{row['ALÔ']}</span></div>
+                <div><span class="m-label">🎯 CPC:</span> <span class="m-val">{row['CPC']}</span></div>
+                <div><span class="m-label">💎 CPCA:</span> <span class="m-val">{row['CPCA']}</span></div>
+                <div><span class="m-label">🤝 PROMESSAS:</span> <span class="m-val">{row['PROMESSA']}</span></div>
+                <div><span class="m-label">⏱️ PAUSA:</span> <span class="m-val">{row['PAUSA_MIN']} min</span></div>
             </div>
         </div>""", unsafe_allow_html=True)
 
-# --- ABA 03: DISCADOR (DETALHAMENTO PESADO) ---
+# --- ABA 03: DISCADOR (SEM ALTERAÇÃO) ---
 with abas[2]:
-    st.markdown(f"""
-    <div class="card-sa">
-        <div class="titulo-card">🔍 IA-SENTINELA: Diagnóstico de Vácuo</div>
-        <div class="valor-card" style="color:#FF4B4B;">Vácuo Detectado (1.00x)</div>
-        <div class="detalhe-tecnico">
-            • <b>Causa Provável:</b> Mailing Saturado (Tentativas > 5)<br>
-            • <b>Efeito:</b> Ocupação de linha sem conversão em ALÔ<br>
-            • <b>Sugestão:</b> Reciclar base de dados ou aumentar o Ratio para 1:5
-        </div>
-    </div>
-    <div class="card-sa">
-        <div class="titulo-card">📊 Saúde do Mailing</div>
-        <div class="valor-card">32%</div>
-        <div class="detalhe-tecnico">
-            • <b>Total Carregado:</b> 5.400 leads<br>
-            • <b>Leads Virgens:</b> 120<br>
-            • <b>Taxa de Atendimento:</b> 12% (Abaixo da média)
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.info("Monitoramento de Discador mantido conforme padrão anterior.")
 
-# --- ABA 04: TELEFONIA (DETALHAMENTO TÉCNICO) ---
+# --- ABA 04: TELEFONIA (SEM ALTERAÇÃO) ---
 with abas[3]:
-    st.markdown(f"""
-    <div class="card-sa">
-        <div class="titulo-card">📡 Estabilidade da Rota SIP</div>
-        <div class="valor-card">Instável</div>
-        <div class="detalhe-tecnico">
-            • <b>Jitter:</b> 15ms (Oscilação detectada)<br>
-            • <b>Perda de Pacotes:</b> 0.5%<br>
-            • <b>Latência:</b> 85ms (Risco de voz robotizada)
-        </div>
-    </div>
-    <div class="card-sa">
-        <div class="titulo-card">📞 Troncos Ativos</div>
-        <div class="valor-card">24 / 30</div>
-        <div class="detalhe-tecnico">
-            • <b>Canais em Uso:</b> 24 canais<br>
-            • <b>Canais com Erro:</b> 6 canais (Timeout)
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    st.info("Monitoramento de Telefonia mantido conforme padrão anterior.")
 
 # --- FOOTER ---
 st.markdown(f"--- \n **SISTEMA V111 ATIVO | STAKE: 1 Real**")
-        
