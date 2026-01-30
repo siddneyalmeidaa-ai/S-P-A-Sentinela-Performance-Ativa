@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 
-# --- 1. CONFIGURAÇÃO SOBERANIA S.A. ---
+# --- 1. SOBERANIA S.A. (ESTILO V111) ---
 st.set_page_config(page_title="S.A. SUPREMO - V111", layout="wide", initial_sidebar_state="collapsed")
 
 st.markdown("""
@@ -12,28 +12,28 @@ st.markdown("""
         text-align: center; color: #FFD700; font-size: 20px; font-weight: bold; 
         border-bottom: 2px solid #FFD700; padding: 10px; margin-bottom: 15px;
     }
-    /* ESTILO DOS CARDS SUPREMO */
     .card-sa {
         background-color: #1A1C23; padding: 20px; border-radius: 12px;
         border: 1px solid #333; margin-bottom: 15px; border-left: 6px solid #FFD700;
     }
     .titulo-card { color: #FFD700; font-size: 14px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
     .valor-card { font-size: 28px; font-weight: bold; color: #FFFFFF; }
-    .detalhe-tecnico { font-size: 13px; color: #AAAAAA; margin-top: 5px; line-height: 1.4; }
+    
+    .diag-box { background-color: #262730; padding: 15px; border-radius: 8px; margin-top: 10px; border: 1px solid #444; }
+    .diag-item { margin-bottom: 10px; font-size: 14px; }
+    .diag-label { color: #FFD700; font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 2px; }
     
     .card-operador {
         background-color: #1A1C23; padding: 18px; border-radius: 12px;
         border: 1px solid #333; margin-bottom: 12px; border-left: 6px solid #FFD700;
     }
-    .nome-op { color: #FFD700; font-weight: bold; font-size: 18px; text-transform: uppercase; }
     .grid-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; font-size: 14px; }
-    .m-label { color: #AAAAAA; }
-    .m-val { color: #FFFFFF; font-weight: bold; }
+    .m-label { color: #FFFFFF; font-weight: bold; }
     </style>
     <div class="selo-sidney">🔱 SIDNEY ALMEIDA - DASHBOARD SUPREMO V111 🔱</div>
     """, unsafe_allow_html=True)
 
-# --- 2. DADOS (PADRÃO OURO) ---
+# --- 2. DADOS ---
 df = pd.DataFrame({
     'OPERADOR': ['PAULO', 'MARCOS', 'JESSICA'],
     'ALÔ': [150, 162, 100],
@@ -44,84 +44,68 @@ df = pd.DataFrame({
     'PAUSA_MIN': [35, 55, 40]
 })
 
-# --- 3. ABAS UNIFICADAS ---
+# --- 3. ABAS ---
 abas = st.tabs(["👑 Cockpit", "👥 Gestão Visual", "☎️ Discador", "📡 Telefonia"])
 
-# --- ABA 01: COCKPIT (RESTAURADO COM CARDS) ---
+# --- ABA 01: COCKPIT ---
 with abas[0]:
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown(f"""<div class="card-sa">
-            <div class="titulo-card">💰 VALOR TOTAL</div>
-            <div class="valor-card">R$ {df['VALOR'].sum():,.2f}</div>
-            <div class="detalhe-tecnico">Meta Liberada: 50%</div>
-        </div>""", unsafe_allow_html=True)
+        st.markdown(f'<div class="card-sa"><div class="titulo-card">💰 VALOR TOTAL</div><div class="valor-card">R$ {df["VALOR"].sum():,.2f}</div></div>', unsafe_allow_html=True)
     with c2:
         conv = (df['PROMESSA'].sum() / df['CPC'].sum()) * 100
-        st.markdown(f"""<div class="card-sa">
-            <div class="titulo-card">📈 CONVERSÃO GERAL</div>
-            <div class="valor-card">{conv:.1f}%</div>
-            <div class="detalhe-tecnico">CPCA / Promessa</div>
-        </div>""", unsafe_allow_html=True)
-    
-    c3, c4 = st.columns(2)
-    with c3:
-        st.markdown(f"""<div class="card-sa">
-            <div class="titulo-card">🤝 TOTAL PROMESSAS</div>
-            <div class="valor-card">{df['PROMESSA'].sum()}</div>
-            <div class="detalhe-tecnico">Volume de Prova</div>
-        </div>""", unsafe_allow_html=True)
-    with c4:
-        st.markdown(f"""<div class="card-sa">
-            <div class="titulo-card">⏱️ MÉDIA DE PAUSA</div>
-            <div class="valor-card">{int(df['PAUSA_MIN'].mean())} min</div>
-            <div class="detalhe-tecnico">Teto: 45 min</div>
-        </div>""", unsafe_allow_html=True)
+        st.markdown(f'<div class="card-sa"><div class="titulo-card">📈 CONVERSÃO GERAL</div><div class="valor-card">{conv:.1f}%</div></div>', unsafe_allow_html=True)
 
-# --- ABA 02: GESTÃO VISUAL (PERFEITA) ---
+# --- ABA 02: GESTÃO VISUAL ---
 with abas[1]:
     for _, row in df.iterrows():
-        status = "✅ OK" if row['PAUSA_MIN'] <= 45 else "🚨 ALERTA"
         color = "#00FF00" if row['PAUSA_MIN'] <= 45 else "#FF4B4B"
         st.markdown(f"""
         <div class="card-operador">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div class="nome-op">👤 {row['OPERADOR']}</div>
-                <div style="color:{color}; font-weight:bold;">{status}</div>
+            <div style="display:flex; justify-content:space-between;">
+                <div style="color:#FFD700; font-weight:bold;">👤 {row['OPERADOR']}</div>
+                <div style="color:{color}; font-weight:bold;">{'✅ OK' if row['PAUSA_MIN'] <= 45 else '🚨 ALERTA'}</div>
             </div>
             <div class="grid-metrics">
-                <div>💰 <span class="m-label">VALOR:</span> <span class="m-val">R$ {row['VALOR']:,.2f}</span></div>
-                <div>📞 <span class="m-label">ALÔ:</span> <span class="m-val">{row['ALÔ']}</span></div>
-                <div>🎯 <span class="m-label">CPC:</span> <span class="m-val">{row['CPC']}</span></div>
-                <div>💎 <span class="m-label">CPCA:</span> <span class="m-val">{row['CPCA']}</span></div>
-                <div>🤝 <span class="m-label">PROMESSAS:</span> <span class="m-val">{row['PROMESSA']}</span></div>
-                <div>⏱️ <span class="m-label">PAUSA:</span> <span class="m-val">{row['PAUSA_MIN']} min</span></div>
+                <div>💰 <span class="m-label">VALOR: R$ {row['VALOR']:,.2f}</span></div>
+                <div>📞 <span class="m-label">ALÔ: {row['ALÔ']}</span></div>
+                <div>🎯 <span class="m-label">CPC: {row['CPC']}</span></div>
+                <div>💎 <span class="m-label">CPCA: {row['CPCA']}</span></div>
+                <div>🤝 <span class="m-label">PROMESSAS: {row['PROMESSA']}</span></div>
+                <div>⏱️ <span class="m-label">PAUSA: {row['PAUSA_MIN']} min</span></div>
             </div>
         </div>""", unsafe_allow_html=True)
 
-# --- ABA 03: DISCADOR (DETALHADO) ---
+# --- ABA 03: DISCADOR (INTELIGÊNCIA APURADA) ---
 with abas[2]:
     st.markdown(f"""
     <div class="card-sa">
-        <div class="titulo-card">🔍 IA-SENTINELA</div>
-        <div class="valor-card">Vácuo (1.00x)</div>
-        <div class="detalhe-tecnico">
-            <b>Status:</b> Zonas Mortas Detectadas<br>
-            <b>Ação:</b> Reciclar Mailing Imediatamente
+        <div class="titulo-card">🔍 IA-SENTINELA: ANÁLISE DE VÁCUO</div>
+        <div class="valor-card" style="color:#FF4B4B;">Vácuo Detectado (1.00x)</div>
+        
+        <div class="diag-box">
+            <div class="diag-item">
+                <span class="diag-label">🔴 Diagnóstico:</span>
+                O sistema identificou uma "Zona Morta" no mailing. As chamadas estão sendo disparadas, mas a rota SIP está retornando 'Null' ou 'Busy' antes de atingir o lead humano.
+            </div>
+            <div class="diag-item">
+                <span class="diag-label">🟡 Prognóstico:</span>
+                Se a base não for reciclada nos próximos 15 minutos, a taxa de ociosidade dos operadores subirá para 40%, causando queda no faturamento projetado para a hora.
+            </div>
+            <div class="diag-item">
+                <span class="diag-label">🟢 Solução:</span>
+                1. Realizar o 'Flush' imediato dos leads em estado de tentativa 4+.<br>
+                2. Alterar a agressividade do discador para Ratio 1:6.<br>
+                3. Reiniciar o tronco de telefonia para limpar o cache de rotas presas.
+            </div>
         </div>
-    </div>""", unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
 
-# --- ABA 04: TELEFONIA (DETALHADA) ---
+# --- ABA 04: TELEFONIA ---
 with abas[3]:
-    st.markdown(f"""
-    <div class="card-sa">
-        <div class="titulo-card">📡 STATUS DA REDE</div>
-        <div class="valor-card">45ms</div>
-        <div class="detalhe-tecnico">
-            <b>Estabilidade:</b> 98.5%<br>
-            <b>Troncos:</b> 24 Canais Ativos
-        </div>
-    </div>""", unsafe_allow_html=True)
+    st.markdown('<div class="card-sa"><div class="titulo-card">📡 STATUS SIP</div><div class="valor-card">45ms</div></div>', unsafe_allow_html=True)
 
 # --- FOOTER ---
 st.markdown(f"--- \n **SISTEMA V111 ATIVO | STAKE: 1 Real**")
+        
